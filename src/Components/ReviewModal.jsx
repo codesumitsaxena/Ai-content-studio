@@ -1,97 +1,135 @@
-import React from 'react';
-import { XCircle, CheckCircle, Instagram, MessageSquare, Image as ImageIcon, Video, Smartphone, Copy, Share2 } from 'lucide-react';
+import React from 'react'
+import {
+  XCircle,
+  CheckCircle,
+  Instagram,
+  MessageSquare,
+  Image as ImageIcon,
+  Video,
+  Smartphone,
+  Copy,
+  Share2
+} from 'lucide-react'
 
 const ReviewModal = ({ request, onClose, onAction, darkMode }) => {
-  if (!request) return null;
+  if (!request) return null
 
   const typeStyles = {
-    chatgpt: { icon: MessageSquare, color: 'text-emerald-500', bg: 'bg-emerald-500/10', label: 'AI Prompt' },
-    post: { icon: Instagram, color: 'text-blue-500', bg: 'bg-blue-500/10', label: 'Social Post' },
-    image: { icon: ImageIcon, color: 'text-purple-500', bg: 'bg-purple-500/10', label: 'AI Image' },
-    video: { icon: Video, color: 'text-orange-500', bg: 'bg-orange-500/10', label: 'Video Script' },
-  };
+    chatgpt: { icon: MessageSquare, color: 'text-emerald-600', bg: 'bg-emerald-50', label: 'AI Prompt' },
+    post: { icon: Instagram, color: 'text-blue-600', bg: 'bg-blue-50', label: 'Social Post' },
+    image: { icon: ImageIcon, color: 'text-purple-600', bg: 'bg-purple-50', label: 'AI Image' },
+    video: { icon: Video, color: 'text-orange-600', bg: 'bg-orange-50', label: 'Video Script' }
+  }
 
-  const config = typeStyles[request.type] || typeStyles.chatgpt;
+  const config = typeStyles[request.type] || typeStyles.chatgpt
 
   return (
-    <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-black/80 backdrop-blur-sm animate-fadeIn">
-      <div className={`${darkMode ? 'bg-gray-900 border-gray-700' : 'bg-white border-slate-200'} border-2 rounded-[2.5rem] w-full max-w-6xl max-h-[90vh] overflow-hidden flex flex-col shadow-2xl animate-scaleIn`}>
-        
+    <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-black/30 backdrop-blur-sm animate-fadeIn">
+
+      <div className="bg-white border border-gray-200 rounded-3xl w-full max-w-6xl max-h-[90vh] overflow-hidden flex flex-col shadow-2xl animate-scaleIn">
+
         {/* Header */}
-        <div className="flex items-center justify-between p-6 border-b dark:border-gray-800">
+        <div className="flex items-center justify-between px-8 py-6 border-b border-gray-200">
           <div className="flex items-center gap-4">
-            <div className={`p-3 rounded-2xl ${config.bg}`}>
-              <config.icon className={config.color} size={28} />
+            <div className={`p-3 rounded-xl ${config.bg}`}>
+              <config.icon className={`${config.color}`} size={26} />
             </div>
             <div>
-              <h3 className={`text-xl font-bold ${darkMode ? 'text-white' : 'text-slate-900'}`}>{config.label} Review</h3>
-              <p className="text-sm text-slate-500">Preview and approve the generated content</p>
+              <h3 className="text-xl font-semibold text-gray-900">
+                {config.label} Review
+              </h3>
+              <p className="text-sm text-gray-500">
+                Preview and approve the generated content
+              </p>
             </div>
           </div>
-          <button onClick={onClose} className="p-2 hover:bg-slate-100 dark:hover:bg-gray-800 rounded-full transition-all">
-            <XCircle size={32} className="text-slate-400 hover:text-red-500" />
+
+          <button
+            onClick={onClose}
+            className="p-2 rounded-lg hover:bg-gray-100 transition"
+          >
+            <XCircle size={28} className="text-gray-400 hover:text-red-500 transition" />
           </button>
         </div>
 
-        {/* Body Split: Content & Preview */}
-        <div className="flex-1 overflow-y-auto p-8 grid grid-cols-1 lg:grid-cols-2 gap-10">
-          
-          {/* Section 1: Content Editor View */}
+        {/* Body */}
+        <div className="flex-1 overflow-y-auto px-8 py-8 grid grid-cols-1 lg:grid-cols-2 gap-10">
+
+          {/* Content */}
           <div className="space-y-6">
             <div className="flex justify-between items-center">
-              <h4 className="text-xs font-black uppercase tracking-widest text-slate-400">Generated Text</h4>
-              <button className="text-xs font-bold text-indigo-500 flex items-center gap-1 hover:underline">
+              <h4 className="text-xs font-semibold uppercase tracking-widest text-gray-400">
+                Generated Text
+              </h4>
+              <button className="text-xs font-semibold text-blue-600 flex items-center gap-1 hover:underline">
                 <Copy size={14} /> Copy
               </button>
             </div>
-            <div className={`p-6 rounded-3xl border-2 min-h-[250px] ${darkMode ? 'bg-gray-800/50 border-gray-700 text-slate-200' : 'bg-slate-50 border-slate-100 text-slate-700'}`}>
-              <p className="text-lg leading-relaxed whitespace-pre-wrap">{request.content}</p>
+
+            <div className="p-6 rounded-2xl border border-gray-200 bg-gray-50 min-h-[250px]">
+              <p className="text-base leading-relaxed whitespace-pre-wrap text-gray-800">
+                {request.content}
+              </p>
             </div>
           </div>
 
-          {/* Section 2: Smartphone Mockup Preview */}
+          {/* Preview */}
           <div className="flex flex-col items-center">
-            <h4 className="text-xs font-black uppercase tracking-widest text-slate-400 mb-6 flex items-center gap-2">
+            <h4 className="text-xs font-semibold uppercase tracking-widest text-gray-400 mb-6 flex items-center gap-2">
               <Smartphone size={16} /> Social Preview
             </h4>
-            <div className="relative w-[280px] h-[560px] bg-black rounded-[3rem] border-[10px] border-gray-800 shadow-2xl overflow-hidden ring-4 ring-gray-700/10">
-              <div className="bg-white h-full flex flex-col text-slate-900 overflow-y-auto">
+
+            <div className="relative w-[280px] h-[560px] bg-black rounded-[2.5rem] border-[8px] border-gray-800 shadow-xl overflow-hidden">
+              <div className="bg-white h-full flex flex-col text-gray-900 overflow-y-auto">
                 <div className="p-3 border-b flex items-center gap-2">
-                  <div className="w-7 h-7 rounded-full bg-gradient-to-tr from-indigo-500 to-purple-500" />
-                  <span className="text-[10px] font-bold">Studio_AI</span>
+                  <div className="w-7 h-7 rounded-full bg-gradient-to-tr from-blue-500 to-purple-500" />
+                  <span className="text-xs font-semibold">Studio_AI</span>
                 </div>
+
                 {request.image && (
-                  <img src={request.image} className="w-full h-48 object-cover" alt="Post Visual" />
+                  <img
+                    src={request.image}
+                    className="w-full h-48 object-cover"
+                    alt="Post Visual"
+                  />
                 )}
+
                 <div className="p-4">
-                  <div className="flex gap-3 mb-3 text-slate-800">
-                    <Instagram size={16} /> <Share2 size={16} />
+                  <div className="flex gap-3 mb-3 text-gray-700">
+                    <Instagram size={16} />
+                    <Share2 size={16} />
                   </div>
-                  <p className="text-[10px] leading-relaxed line-clamp-6">{request.content}</p>
+                  <p className="text-xs leading-relaxed line-clamp-6">
+                    {request.content}
+                  </p>
                 </div>
               </div>
             </div>
           </div>
+
         </div>
 
-        {/* Footer Actions */}
-        <div className={`p-8 border-t ${darkMode ? 'bg-gray-800/50 border-gray-700' : 'bg-slate-50 border-slate-100'} flex justify-center gap-6`}>
-          <button 
+        {/* Footer */}
+        <div className="px-8 py-6 border-t border-gray-200 bg-gray-50 flex justify-center gap-6">
+
+          <button
             onClick={() => onAction(request.id, 'rejected')}
-            className="flex-1 max-w-[200px] py-4 rounded-2xl border-2 border-red-500 text-red-500 font-bold hover:bg-red-50 transition-all flex items-center justify-center gap-2"
+            className="flex-1 max-w-[200px] py-3 rounded-xl border border-red-500 text-red-600 font-semibold hover:bg-red-50 transition flex items-center justify-center gap-2"
           >
             <XCircle size={20} /> Reject
           </button>
-          <button 
+
+          <button
             onClick={() => onAction(request.id, 'approved')}
-            className="flex-1 max-w-[200px] py-4 rounded-2xl bg-gradient-to-r from-emerald-500 to-teal-600 text-white font-bold shadow-xl shadow-emerald-500/20 hover:scale-105 transition-all flex items-center justify-center gap-2"
+            className="flex-1 max-w-[200px] py-3 rounded-xl bg-blue-600 text-white font-semibold shadow hover:bg-blue-700 transition flex items-center justify-center gap-2"
           >
             <CheckCircle size={20} /> Approve & Share
           </button>
+
         </div>
       </div>
     </div>
-  );
-};
+  )
+}
 
-export default ReviewModal;
+export default ReviewModal
