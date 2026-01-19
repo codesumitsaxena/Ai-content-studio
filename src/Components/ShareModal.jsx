@@ -12,7 +12,7 @@ const ShareModal = ({ shareToSocial, setShowShareModal, currentRequest }) => {
   const [selected, setSelected] = useState([])
   const [isPosting, setIsPosting] = useState(false)
 
-  const N8N_WEBHOOK_URL = 'https://n8n.avertisystems.com/webhook-test/social-post'
+  const N8N_WEBHOOK_URL = 'https://n8n.avertisystems.com/webhook/social-post'
 
   // ✅ FIX: Use platform ID instead of name
   const toggle = (platformId) => {

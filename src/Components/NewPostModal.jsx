@@ -109,7 +109,7 @@ const NewPostModal = ({ newPost, setNewPost, setShowNewPostModal, shareToSocial 
 
       console.log('Sending webhook data:', webhookData);
 
-      const response = await fetch('https://n8n.avertisystems.com/webhook-test/social-post', {
+      const response = await fetch('https://n8n.avertisystems.com/webhook/social-post', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
