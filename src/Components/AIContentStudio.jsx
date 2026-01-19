@@ -1,4 +1,4 @@
-// ========== AIContentStudio.jsx (FIXED) ==========
+// ========== AIContentStudio.jsx (WITH BLOATO POST) ==========
 import React, { useState } from 'react'
 import Header from './Header'
 import NotificationDropdown from './NotificationDropdown'
@@ -7,6 +7,7 @@ import ApprovalModal from './ApprovalModal'
 import PreviewModal from './PreviewModal'
 import ShareModal from './ShareModal'
 import NewPostModal from './NewPostModal'
+import BloatoPostModal from './BloatoPostModal' // ✅ STEP 1: Import BloatoPostModal
 import { Sparkles, Wand2 } from 'lucide-react'
 
 const AIContentStudio = () => {
@@ -32,7 +33,16 @@ const AIContentStudio = () => {
     mediaUrl: ''
   })
 
+  const [showBloatoPostModal, setShowBloatoPostModal] = useState(false)
+  const [bloatoPost, setBloatoPost] = useState({
+    platform: 'instagram',
+    content: '',
+    mediaType: 'text',
+    mediaUrl: ''
+  })
+
   const N8N_WEBHOOK_URL = 'https://n8n.avertisystems.com/webhook/ai-content-studio'
+  
 
   const bgColor = 'bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-50'
   const cardBg = 'bg-white'
@@ -126,7 +136,7 @@ const AIContentStudio = () => {
   const pendingRequests = requests.filter(r => r.status === 'pending')
 
   return (
-    <div className={`min-h-screen ${bgColor}`}>
+<div className={`min-h-screen ${bgColor}`} style={{ zoom: '90%' }}>      {/* ✅ STEP 3: Pass Bloato props to Header */}
       <Header
         darkMode={darkMode}
         setDarkMode={setDarkMode}
@@ -134,6 +144,7 @@ const AIContentStudio = () => {
         setShowNotifications={setShowNotifications}
         pendingRequests={pendingRequests}
         setShowNewPostModal={setShowNewPostModal}
+        setShowBloatoPostModal={setShowBloatoPostModal} // ✅ Add this prop
         cardBg={cardBg}
         textColor={textColor}
         textSecondary={textSecondary}
@@ -155,14 +166,15 @@ const AIContentStudio = () => {
       <main className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-10 py-16">
         <div className="text-center mb-14">
           <h1 className="text-4xl sm:text-5xl lg:text-6xl font-bold text-gray-900 tracking-tight">
-            Transform Ideas into
+            Automate Social Media Platform
           </h1>
           <h2 className="mt-2 text-4xl sm:text-5xl lg:text-6xl font-bold bg-gradient-to-r from-blue-600 via-indigo-600 to-purple-600 bg-clip-text text-transparent">
             Powerful Content
           </h2>
-          <p className="mt-6 text-lg text-gray-500 max-w-2xl mx-auto">
-            AI-powered content creation for social posts, images, videos and prompts.
-          </p>
+          <p className="mt-3 text-lg text-gray-600 max-w-2xl mx-auto">
+    Create high-quality posts, images, videos, and prompts faster using AI-tools.
+</p>
+
         </div>
 
         <InputBox
@@ -179,7 +191,7 @@ const AIContentStudio = () => {
           textColor={textColor}
         />
 
-        {generatedImage && (
+        {/* {generatedImage && (
           <div className="mt-10 bg-white rounded-2xl shadow-lg border border-gray-200 p-6">
             <div className="flex items-center gap-2 mb-4 text-gray-800 font-semibold">
               <Wand2 className="w-5 h-5" />
@@ -187,10 +199,9 @@ const AIContentStudio = () => {
             </div>
             <img src={generatedImage} className="rounded-xl shadow w-full" />
           </div>
-        )}
+        )} */}
       </main>
 
-      {/* ✅ FIX: ApprovalModal ko setShowShareModal prop pass karo */}
       {showApprovalModal && currentRequest && (
         <ApprovalModal
           currentRequest={currentRequest}
@@ -209,7 +220,7 @@ const AIContentStudio = () => {
           }}
           setShowApprovalModal={setShowApprovalModal}
           setShowPreview={setShowPreview}
-          setShowShareModal={setShowShareModal}  // ✅ Ye prop add karo
+          setShowShareModal={setShowShareModal}
           darkMode={darkMode}
           cardBg={cardBg}
           textColor={textColor}
@@ -239,10 +250,9 @@ const AIContentStudio = () => {
         />
       )}
 
-      {/* ✅ FIX: ShareModal ko currentRequest prop pass karo */}
       {showShareModal && currentRequest && (
         <ShareModal
-          currentRequest={currentRequest}  // ✅ Ye prop add karo
+          currentRequest={currentRequest}
           shareToSocial={(platform) => {
             alert(`Posted to ${platform}`)
             setShowShareModal(false)
@@ -271,6 +281,14 @@ const AIContentStudio = () => {
           cardBg={cardBg}
           textColor={textColor}
           textSecondary={textSecondary}
+        />
+      )}
+
+      {/* ✅ STEP 4: Add BloatoPostModal component */}
+      {showBloatoPostModal && (
+        <BloatoPostModal
+          isOpen={showBloatoPostModal}
+          setIsOpen={setShowBloatoPostModal}
         />
       )}
     </div>

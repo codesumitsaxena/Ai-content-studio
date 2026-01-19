@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
-import { X, Upload, Zap, Trash2 } from 'lucide-react';
+import { X, Upload, Zap } from 'lucide-react';
 
+// Add custom scrollbar styles
 const scrollbarStyles = `
   .custom-scrollbar::-webkit-scrollbar {
     width: 6px;
@@ -20,12 +21,10 @@ const scrollbarStyles = `
   }
 `;
 
-const NewPostModal = ({ newPost, setNewPost, setShowNewPostModal, shareToSocial }) => {
+export default function BloatoPostModal({ isOpen, setIsOpen }) {
   const [selectedPlatforms, setSelectedPlatforms] = useState(['Instagram']);
+  const [content, setContent] = useState('');
   const [uploadedFiles, setUploadedFiles] = useState([]);
-  const [isPublishing, setIsPublishing] = useState(false);
-
-  const safeNewPost = newPost || { platform: 'instagram', content: '', mediaType: 'text', mediaUrl: '' };
 
   const platforms = [
     { id: 'Instagram', color: '#E1306C', bgColor: 'bg-pink-50', borderColor: 'border-pink-500', textColor: 'text-pink-600' },
@@ -58,86 +57,13 @@ const NewPostModal = ({ newPost, setNewPost, setShowNewPostModal, shareToSocial 
   };
 
   const handleClose = () => {
+    setContent('');
     setUploadedFiles([]);
-    setNewPost({ platform: 'instagram', content: '', mediaType: 'text', mediaUrl: '' });
     setSelectedPlatforms(['Instagram']);
-    setShowNewPostModal(false);
-    setIsPublishing(false);
+    setIsOpen(false);
   };
 
-  const fileToBase64 = (file) => {
-    return new Promise((resolve, reject) => {
-      const reader = new FileReader();
-      reader.readAsDataURL(file);
-      reader.onload = () => resolve(reader.result);
-      reader.onerror = error => reject(error);
-    });
-  };
-
-  const handlePublish = async () => {
-    if (!safeNewPost.content.trim()) {
-      alert('Enter post content');
-      return;
-    }
-    
-    if (selectedPlatforms.length === 0) {
-      alert('Select at least one platform');
-      return;
-    }
-
-    setIsPublishing(true);
-
-    try {
-      const base64Files = await Promise.all(
-        uploadedFiles.map(async (fileObj) => ({
-          base64: await fileToBase64(fileObj.file),
-          name: fileObj.name,
-          type: fileObj.type
-        }))
-      );
-
-      const webhookData = {
-        platforms: selectedPlatforms.map(p => p.toLowerCase()),
-        content: safeNewPost.content,
-        caption: safeNewPost.content,
-        mediaType: uploadedFiles.length > 0 ? 'image' : 'text',
-        images: base64Files.length > 0 ? base64Files : [],
-        image_url: safeNewPost.mediaUrl || '',
-        visibility: 'public',
-        timestamp: new Date().toISOString()
-      };
-
-      console.log('Sending webhook data:', webhookData);
-
-      const response = await fetch('https://n8n.avertisystems.com/webhook-test/social-post', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify(webhookData)
-      });
-
-      if (response.ok) {
-        console.log('Webhook triggered successfully');
-        alert(`Post published to ${selectedPlatforms.join(', ')} successfully! 🎉`);
-        
-        if (shareToSocial) {
-          selectedPlatforms.forEach(p => shareToSocial(p.toLowerCase()));
-        }
-        
-        handleClose();
-      } else {
-        const errorText = await response.text();
-        console.error('Webhook failed:', response.status, errorText);
-        alert('Failed to publish post: ' + (errorText || 'Unknown error'));
-        setIsPublishing(false);
-      }
-    } catch (error) {
-      console.error('Error triggering webhook:', error);
-      alert('Error publishing post: ' + error.message);
-      setIsPublishing(false);
-    }
-  };
+  if (!isOpen) return null;
 
   return (
     <>
@@ -152,14 +78,13 @@ const NewPostModal = ({ newPost, setNewPost, setShowNewPostModal, shareToSocial 
                 <Zap className="w-6 h-6 text-white" fill="white" />
               </div>
               <div>
-                <h2 className="text-white font-bold text-xl tracking-tight">Create New Post</h2>
-                <p className="text-blue-100 text-sm">Share your content with the world</p>
+                <h2 className="text-white font-bold text-xl tracking-tight">Create Bloato Post</h2>
+                <p className="text-blue-100 text-sm">Supercharge your content</p>
               </div>
             </div>
             <button
               onClick={handleClose}
-              disabled={isPublishing}
-              className="text-white/90 hover:bg-white/20 p-2 rounded-lg transition-all duration-200 disabled:opacity-50"
+              className="text-white/90 hover:bg-white/20 p-2 rounded-lg transition-all duration-200"
             >
               <X className="w-5 h-5" />
             </button>
@@ -178,12 +103,11 @@ const NewPostModal = ({ newPost, setNewPost, setShowNewPostModal, shareToSocial 
                   <button
                     key={platform.id}
                     onClick={() => togglePlatform(platform.id)}
-                    disabled={isPublishing}
                     className={`p-4 rounded-xl border-2 transition-all duration-200 ${
                       selectedPlatforms.includes(platform.id)
                         ? `${platform.borderColor} ${platform.bgColor} shadow-md`
                         : 'border-gray-200 bg-white hover:border-gray-300 hover:shadow-sm'
-                    } ${isPublishing ? 'opacity-50 cursor-not-allowed' : ''}`}
+                    }`}
                   >
                     <div className="flex items-center gap-3">
                       <div className="text-3xl">
@@ -225,30 +149,21 @@ const NewPostModal = ({ newPost, setNewPost, setShowNewPostModal, shareToSocial 
             {/* Textarea */}
             <div className="mb-4">
               <textarea
-                value={safeNewPost.content}
-                onChange={(e) => setNewPost({ ...safeNewPost, content: e.target.value })}
-                placeholder="What's on your mind? ✨"
-                disabled={isPublishing}
-                className="w-full h-32 p-4 border-2 border-gray-200 rounded-2xl resize-none focus:outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-200 transition-all text-gray-700 placeholder-gray-400 disabled:opacity-50 disabled:bg-gray-50"
+                value={content}
+                onChange={(e) => setContent(e.target.value)}
+                placeholder="What's your Bloato moment? ⚡"
+                className="w-full h-32 p-4 border-2 border-gray-200 rounded-2xl resize-none focus:outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-200 transition-all text-gray-700 placeholder-gray-400"
               />
             </div>
 
             {/* Upload Media */}
             <div className="mb-4">
-              <label className={`flex items-center gap-3 cursor-pointer p-4 border-2 border-dashed border-gray-300 rounded-2xl hover:border-blue-500 hover:bg-blue-50 transition-all duration-200 ${isPublishing ? 'opacity-50 cursor-not-allowed' : ''}`}>
+              <label className="flex items-center gap-3 cursor-pointer p-4 border-2 border-dashed border-gray-300 rounded-2xl hover:border-blue-500 hover:bg-blue-50 transition-all duration-200">
                 <Upload className="w-5 h-5 text-blue-600" />
                 <span className="font-medium text-gray-700">Upload media</span>
-                <input hidden type="file" accept="image/*,video/*" multiple onChange={handleUpload} disabled={isPublishing} />
+                <input hidden type="file" accept="image/*,video/*" multiple onChange={handleUpload} />
               </label>
             </div>
-
-            {/* Preview - Show mediaUrl if exists */}
-            {safeNewPost.mediaUrl && (
-              <div className="border-2 border-gray-200 rounded-2xl p-4 mb-4">
-                <p className="text-xs font-semibold text-gray-500 mb-2">From Approved Content:</p>
-                <img src={safeNewPost.mediaUrl} className="w-full max-h-48 object-contain rounded-xl" alt="Approved media" />
-              </div>
-            )}
 
             {/* Preview - Uploaded Files */}
             {uploadedFiles.length > 0 && (
@@ -258,8 +173,7 @@ const NewPostModal = ({ newPost, setNewPost, setShowNewPostModal, shareToSocial 
                     <img src={file.preview} className="h-20 w-full object-cover rounded-xl border-2 border-gray-200" alt={file.name} />
                     <button 
                       onClick={() => removeFile(i)} 
-                      disabled={isPublishing}
-                      className="absolute -top-2 -right-2 bg-red-500 text-white p-1.5 rounded-full shadow-lg hover:bg-red-600 transition-all duration-200 disabled:opacity-50"
+                      className="absolute -top-2 -right-2 bg-red-500 text-white p-1.5 rounded-full shadow-lg hover:bg-red-600 transition-all duration-200"
                     >
                       <X size={14} />
                     </button>
@@ -273,36 +187,17 @@ const NewPostModal = ({ newPost, setNewPost, setShowNewPostModal, shareToSocial 
           <div className="bg-gray-50 px-7 py-4 flex items-center justify-end gap-3 border-t border-gray-100 flex-shrink-0">
             <button
               onClick={handleClose}
-              disabled={isPublishing}
-              className="px-6 py-2.5 text-gray-700 font-medium hover:bg-gray-200 rounded-xl transition-all duration-200 disabled:opacity-50"
+              className="px-6 py-2.5 text-gray-700 font-medium hover:bg-gray-200 rounded-xl transition-all duration-200"
             >
               Cancel
             </button>
-            <button
-              onClick={handlePublish}
-              disabled={isPublishing}
-              className="px-6 py-2.5 bg-gradient-to-r from-blue-600 to-indigo-600 text-white font-semibold rounded-xl hover:from-blue-700 hover:to-indigo-700 transition-all duration-200 shadow-lg shadow-blue-500/30 hover:shadow-xl hover:shadow-blue-500/40 flex items-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed"
-            >
-              {isPublishing ? (
-                <>
-                  <svg className="animate-spin h-4 w-4" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
-                    <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
-                    <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
-                  </svg>
-                  Publishing...
-                </>
-              ) : (
-                <>
-                  <Zap className="w-4 h-4" fill="white" />
-                  Publish
-                </>
-              )}
+            <button className="px-6 py-2.5 bg-gradient-to-r from-blue-600 to-indigo-600 text-white font-semibold rounded-xl hover:from-blue-700 hover:to-indigo-700 transition-all duration-200 shadow-lg shadow-blue-500/30 hover:shadow-xl hover:shadow-blue-500/40 flex items-center gap-2">
+              <Zap className="w-4 h-4" fill="white" />
+              Publish
             </button>
           </div>
         </div>
       </div>
     </>
   );
-};
-
-export default NewPostModal;
+}
