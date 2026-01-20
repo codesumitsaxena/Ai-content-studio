@@ -17,7 +17,7 @@ const InputBox = ({
 
       {/* Text Input - No overlay */}
       <textarea
-        value={idea}
+        value={idea || ''}
         onChange={(e) => setIdea(e.target.value)}
         placeholder="Describe your vision…"
         className="w-full h-44 md:h-48 px-6 py-5 text-base md:text-lg text-gray-900 placeholder-gray-400 resize-none focus:outline-none leading-relaxed"
@@ -76,9 +76,9 @@ const InputBox = ({
           {/* Generate Button with Loading */}
           <button
             onClick={generateContent}
-            disabled={isLoading || !idea.trim() || !activeMode}
+            disabled={isLoading || !(idea || '').trim() || !activeMode}
             className={`px-7 py-3 rounded-xl font-semibold flex items-center gap-2 transition-all min-w-[140px] justify-center
-              ${isLoading || !idea.trim() || !activeMode
+              ${isLoading || !(idea || '').trim() || !activeMode
                 ? 'bg-gray-200 text-gray-400 cursor-not-allowed'
                 : 'bg-blue-600 text-white hover:bg-blue-700 shadow hover:shadow-md active:scale-95'}`}
           >

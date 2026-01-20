@@ -1,4 +1,3 @@
-// ========== AIContentStudio.jsx (WITH BLOATO POST) ==========
 import React, { useState } from 'react'
 import Header from './Header'
 import NotificationDropdown from './NotificationDropdown'
@@ -7,8 +6,7 @@ import ApprovalModal from './ApprovalModal'
 import PreviewModal from './PreviewModal'
 import ShareModal from './ShareModal'
 import NewPostModal from './NewPostModal'
-import BloatoPostModal from './BloatoPostModal' // ✅ STEP 1: Import BloatoPostModal
-import { Sparkles, Wand2 } from 'lucide-react'
+import BloatoPostModal from './BloatoPostModal'
 
 const AIContentStudio = () => {
   const [darkMode, setDarkMode] = useState(false)
@@ -41,9 +39,9 @@ const AIContentStudio = () => {
     mediaUrl: ''
   })
 
-  const N8N_WEBHOOK_URL = 'https://n8n.avertisystems.com/webhook/ai-content-studio'
+  const N8N_WEBHOOK_URL = 'https://n8n.avertisystems.com/webhook-test/ai-content-studio'
+  const BACKEND_API = 'http://localhost:3000/api/content'
   
-
   const bgColor = 'bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-50'
   const cardBg = 'bg-white'
   const textColor = 'text-gray-900'
@@ -56,6 +54,43 @@ const AIContentStudio = () => {
       const reader = new FileReader()
       reader.onload = (e) => setUploadedImage(e.target.result)
       reader.readAsDataURL(file)
+    }
+  }
+
+  // Save content to backend and get real ID
+  const saveToBackend = async (contentData) => {
+    try {
+      const formData = new FormData()
+      formData.append('caption', contentData.caption || contentData.content)
+      formData.append('status', 'pending')
+      
+      // If there's a generated image, convert base64 to blob
+      if (contentData.generatedImage) {
+        const response = await fetch(contentData.generatedImage)
+        const blob = await response.blob()
+        formData.append('image', blob, `generated-${Date.now()}.png`)
+      }
+      // Or if there's an uploaded image
+      else if (uploadedFile) {
+        formData.append('image', uploadedFile)
+      }
+
+      const res = await fetch(BACKEND_API, {
+        method: 'POST',
+        body: formData
+      })
+
+      if (!res.ok) {
+        const errorText = await res.text()
+        throw new Error(`Backend save failed: ${errorText}`)
+      }
+
+      const savedData = await res.json()
+      console.log('✅ Content saved to backend:', savedData)
+      return savedData.id // Return the real backend ID
+    } catch (error) {
+      console.error('❌ Failed to save to backend:', error)
+      return null
     }
   }
 
@@ -91,39 +126,58 @@ const AIContentStudio = () => {
 
       const data = await response.json()
 
+      // For chatgpt mode - just update the input field
       if (activeMode === 'chatgpt') {
-        setIdea(data.polished_text || data.output)
+        setIdea(data.published_text || data.polished_text || data.output)
         setIsLoading(false)
         return
       }
 
+      // Prepare content data
+      let generatedImageUrl = null
+      let caption = data.caption || data.published_text || data.polished_text || data.output
+
+      // For image mode - set image and caption
       if (activeMode === 'image' && data.image_data) {
-        const imageUrl = data.image_data.startsWith('data:')
+        generatedImageUrl = data.image_data.startsWith('data:')
           ? data.image_data
           : `data:image/png;base64,${data.image_data}`
-
-        setGeneratedImage(imageUrl)
-        setGeneratedContent(data.image_prompt || data.polished_text)
+        
+        setGeneratedImage(generatedImageUrl)
+        setGeneratedContent(caption)
       } else {
-        setGeneratedContent(data.polished_text || data.output)
+        setGeneratedContent(caption)
       }
 
-      setIdea('')
-
+      // Create new request object
       const newRequest = {
-        id: Date.now(),
+        id: Date.now(), // Frontend ID for React keys
         type: activeMode,
-        content: data.polished_text || data.output,
+        content: caption,
+        caption: caption,
         image: uploadedImage,
-        generatedImage: activeMode === 'image' && data.image_data
-          ? (data.image_data.startsWith('data:') ? data.image_data : `data:image/png;base64,${data.image_data}`)
-          : null,
+        generatedImage: generatedImageUrl,
         status: 'pending',
         timestamp: new Date().toISOString(),
-        originalIdea: idea
+        originalIdea: idea,
+        backendId: null // Will be set after saving
+      }
+
+      // Save to backend and get real ID
+      const backendId = await saveToBackend(newRequest)
+      if (backendId) {
+        newRequest.backendId = backendId
+        console.log(`✅ Content saved with backend ID: ${backendId}`)
+      } else {
+        console.warn('⚠️ Could not save to backend, APIs will be skipped')
       }
 
       setRequests(prev => [newRequest, ...prev])
+      
+      // Reset form after successful generation
+      setIdea('')
+      setUploadedImage(null)
+      setUploadedFile(null)
 
     } catch (error) {
       console.error('Error:', error)
@@ -136,7 +190,7 @@ const AIContentStudio = () => {
   const pendingRequests = requests.filter(r => r.status === 'pending')
 
   return (
-<div className={`min-h-screen ${bgColor}`} style={{ zoom: '90%' }}>      {/* ✅ STEP 3: Pass Bloato props to Header */}
+    <div className={`min-h-screen ${bgColor}`} style={{ zoom: '90%' }}>
       <Header
         darkMode={darkMode}
         setDarkMode={setDarkMode}
@@ -144,7 +198,7 @@ const AIContentStudio = () => {
         setShowNotifications={setShowNotifications}
         pendingRequests={pendingRequests}
         setShowNewPostModal={setShowNewPostModal}
-        setShowBloatoPostModal={setShowBloatoPostModal} // ✅ Add this prop
+        setShowBloatoPostModal={setShowBloatoPostModal}
         cardBg={cardBg}
         textColor={textColor}
         textSecondary={textSecondary}
@@ -172,9 +226,8 @@ const AIContentStudio = () => {
             Powerful Content
           </h2>
           <p className="mt-3 text-lg text-gray-600 max-w-2xl mx-auto">
-    Create high-quality posts, images, videos, and prompts faster using AI-tools.
-</p>
-
+            Create high-quality posts, images, videos, and prompts faster using AI-tools.
+          </p>
         </div>
 
         <InputBox
@@ -186,20 +239,10 @@ const AIContentStudio = () => {
           setActiveMode={setActiveMode}
           isLoading={isLoading}
           generateContent={generateContent}
-          darkMode={darkMode}
+          darkBg={darkMode}
           cardBg={cardBg}
           textColor={textColor}
         />
-
-        {/* {generatedImage && (
-          <div className="mt-10 bg-white rounded-2xl shadow-lg border border-gray-200 p-6">
-            <div className="flex items-center gap-2 mb-4 text-gray-800 font-semibold">
-              <Wand2 className="w-5 h-5" />
-              Generated Image
-            </div>
-            <img src={generatedImage} className="rounded-xl shadow w-full" />
-          </div>
-        )} */}
       </main>
 
       {showApprovalModal && currentRequest && (
@@ -254,11 +297,12 @@ const AIContentStudio = () => {
         <ShareModal
           currentRequest={currentRequest}
           shareToSocial={(platform) => {
-            alert(`Posted to ${platform}`)
+            setRequests(prev =>
+              prev.map(r =>
+                r.id === currentRequest.id ? { ...r, status: 'approved' } : r
+              )
+            )
             setShowShareModal(false)
-            setIdea('')
-            setUploadedImage(null)
-            setActiveMode(null)
           }}
           setShowShareModal={setShowShareModal}
           darkMode={darkMode}
@@ -284,7 +328,6 @@ const AIContentStudio = () => {
         />
       )}
 
-      {/* ✅ STEP 4: Add BloatoPostModal component */}
       {showBloatoPostModal && (
         <BloatoPostModal
           isOpen={showBloatoPostModal}
