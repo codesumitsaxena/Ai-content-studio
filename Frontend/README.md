@@ -70,7 +70,7 @@ Example usage:
 
 User logs in to Simon Portal using valid credentials.
 
-[Login Screen](./public/login.png)
+[Login-Screen](./public/loginPage.png)
 
 ---
 
