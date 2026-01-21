@@ -166,7 +166,7 @@ From history, user can:
 * Reject pending content
 * Track publish status
 
-![Dashboard](../Frontend/public/)
+![Content-History](../Frontend/public/imageHistory.png)
 
 ---
 
@@ -178,6 +178,9 @@ n8n is responsible for:
 * Managing approval flow
 * Routing content to correct social platform
 * Executing API calls for publishing
+
+![Ai-Content-Studio](../Frontend/public/workflow.png)
+
 
 Each platform has its own conditional workflow path:
 
