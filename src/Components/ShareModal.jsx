@@ -22,11 +22,11 @@ const scrollbarStyles = `
   }
 `;
 
-const ShareModal = ({ shareToSocial, setShowShareModal, currentRequest }) => {
+const ShareModal = ({ shareToSocial, setShowShareModal, currentRequest, onPublishSuccess }) => {
   const [selected, setSelected] = useState([])
   const [isPosting, setIsPosting] = useState(false)
 
-  const N8N_WEBHOOK_URL = 'https://n8n.avertisystems.com/webhook/social-post'
+  const N8N_WEBHOOK_URL = 'https://n8n.avertisystems.com/webhook-test/social-post'
 
   const platforms = [
     { id: 'instagram', name: 'Instagram', icon: Instagram, color: '#E1306C', bgColor: 'bg-pink-50', borderColor: 'border-pink-500', textColor: 'text-pink-600' },
@@ -77,7 +77,7 @@ const ShareModal = ({ shareToSocial, setShowShareModal, currentRequest }) => {
     })
   }
 
-  // Update database with platforms and approve status
+  // ✅ MAIN CHANGE: Update database with APPROVED status + platforms
   const updateDatabaseAfterPublish = async (publishedPlatforms) => {
     if (!currentRequest?.backendId) {
       console.error('❌ No backend ID found, cannot update database')
@@ -101,6 +101,7 @@ const ShareModal = ({ shareToSocial, setShowShareModal, currentRequest }) => {
         url: `${BASE_URL}/${currentRequest.backendId}/approve`
       })
 
+      // ✅ CRITICAL: Call /approve endpoint which updates BOTH status AND platforms
       const res = await fetch(`${BASE_URL}/${currentRequest.backendId}/approve`, {
         method: 'PATCH',
         headers: { 'Content-Type': 'application/json' },
@@ -204,7 +205,7 @@ const ShareModal = ({ shareToSocial, setShowShareModal, currentRequest }) => {
         
         console.log('✅ N8N Publish Success:', result)
 
-        // ✅ CRITICAL: Update database with platforms and approve status
+        // ✅ CRITICAL: Update database with APPROVED status + platforms
         const dbUpdateSuccess = await updateDatabaseAfterPublish(selected)
 
         // Call shareToSocial callback
@@ -212,8 +213,13 @@ const ShareModal = ({ shareToSocial, setShowShareModal, currentRequest }) => {
           selected.forEach(platform => shareToSocial(platform))
         }
 
+        // ✅ Notify parent component about successful publish
+        if (onPublishSuccess) {
+          onPublishSuccess()
+        }
+
         if (dbUpdateSuccess) {
-          alert(`✅ Successfully posted to ${selected.join(', ')} and status updated! 🎉`)
+          alert(`✅ Successfully posted to ${selected.join(', ')} and status updated to APPROVED! 🎉`)
         } else {
           alert(`⚠️ Posted to ${selected.join(', ')} but database status update failed. Please check console and refresh the page.`)
         }
@@ -261,15 +267,6 @@ const ShareModal = ({ shareToSocial, setShowShareModal, currentRequest }) => {
 
           {/* Content - Scrollable */}
           <div className="p-7 overflow-y-auto flex-1 custom-scrollbar">
-            
-            {/* Debug Info - Remove this in production */}
-            {currentRequest && (
-              <div className="mb-3 p-3 bg-yellow-50 border border-yellow-200 rounded-lg text-xs">
-                <p className="font-semibold text-yellow-800 mb-1">Debug Info:</p>
-                <p className="text-yellow-700">Backend ID: {currentRequest.backendId || '❌ NULL'}</p>
-                <p className="text-yellow-700">Frontend ID: {currentRequest.id}</p>
-              </div>
-            )}
 
             {/* Content Preview */}
             {currentRequest && (
@@ -293,7 +290,7 @@ const ShareModal = ({ shareToSocial, setShowShareModal, currentRequest }) => {
 
             {/* Platforms - Multiple Selection */}
             <div className="mb-5">
-              <label className="text-gray-700 font-semibold mb-3 block flex items-center gap-2 text-sm">
+              <label className="text-gray-700 font-semibold mb-3  flex items-center gap-2 text-sm">
                 <span>🌐</span> Select Platforms (Multiple)
               </label>
               <div className="grid grid-cols-2 gap-3">

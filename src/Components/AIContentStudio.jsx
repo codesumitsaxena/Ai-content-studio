@@ -18,7 +18,10 @@ const AIContentStudio = () => {
   const [generatedContent, setGeneratedContent] = useState('')
   const [generatedImage, setGeneratedImage] = useState(null)
   const [showNotifications, setShowNotifications] = useState(false)
+  
+  // ✅ LOCAL STATE FOR NOTIFICATIONS ONLY (not for history)
   const [requests, setRequests] = useState([])
+  
   const [showApprovalModal, setShowApprovalModal] = useState(false)
   const [currentRequest, setCurrentRequest] = useState(null)
   const [showShareModal, setShowShareModal] = useState(false)
@@ -41,7 +44,7 @@ const AIContentStudio = () => {
 
   const N8N_WEBHOOK_URL = 'https://n8n.avertisystems.com/webhook-test/ai-content-studio'
   const BACKEND_API = 'http://localhost:3000/api/content'
-  
+
   const bgColor = 'bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-50'
   const cardBg = 'bg-white'
   const textColor = 'text-gray-900'
@@ -57,42 +60,85 @@ const AIContentStudio = () => {
     }
   }
 
-  // Save content to backend and get real ID
+  // ✅ FIXED: Handle approve from history - Open ApprovalModal first, then ShareModal
+  const handleApproveFromHistory = (requestData) => {
+    console.log('🔍 History → Approval Flow Started')
+    console.log('📦 Request Data:', requestData)
+    console.log('🆔 Backend ID:', requestData.backendId)
+    
+    // ✅ CRITICAL: Set currentRequest with ALL data including backendId
+    setCurrentRequest({
+      ...requestData,
+      backendId: requestData.backendId || requestData.id // Fallback to id if backendId missing
+    })
+    
+    // ✅ Open ApprovalModal first (user can review before sharing)
+    setShowApprovalModal(true)
+    
+    console.log('✅ ApprovalModal opened with backendId:', requestData.backendId)
+  }
+
+  // ✅ IMPROVED: Save to backend with duplicate prevention
   const saveToBackend = async (contentData) => {
     try {
-      const formData = new FormData()
-      formData.append('caption', contentData.caption || contentData.content)
-      formData.append('status', 'pending')
-      
-      // If there's a generated image, convert base64 to blob
-      if (contentData.generatedImage) {
-        const response = await fetch(contentData.generatedImage)
-        const blob = await response.blob()
-        formData.append('image', blob, `generated-${Date.now()}.png`)
-      }
-      // Or if there's an uploaded image
-      else if (uploadedFile) {
-        formData.append('image', uploadedFile)
+      const caption = contentData.caption || contentData.content;
+      const imageData = contentData.generatedImage || uploadedImage;
+
+      // ✅ STEP 1: Check if this content already exists in backend
+      console.log('🔍 Checking for existing content...');
+      const checkRes = await fetch(BACKEND_API);
+      if (checkRes.ok) {
+        const existing = await checkRes.json();
+        
+        // Find if exact same caption exists (created in last 10 seconds)
+        const duplicate = existing.data?.find(item => {
+          const isSameCaption = item.caption === caption;
+          const createdAt = new Date(item.created_at);
+          const now = new Date();
+          const diffSeconds = (now - createdAt) / 1000;
+          return isSameCaption && diffSeconds < 10;
+        });
+
+        if (duplicate) {
+          console.log('⚠️ Duplicate found! Using existing ID:', duplicate.id);
+          return duplicate.id;
+        }
       }
 
+      // ✅ STEP 2: No duplicate found, create new entry
+      const payload = {
+        caption: caption,
+        image_data: imageData
+      };
+
+      console.log('📤 Creating new backend entry...');
       const res = await fetch(BACKEND_API, {
         method: 'POST',
-        body: formData
-      })
+        headers: {
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify(payload)
+      });
 
       if (!res.ok) {
-        const errorText = await res.text()
-        throw new Error(`Backend save failed: ${errorText}`)
+        const text = await res.text();
+        throw new Error(text);
       }
 
-      const savedData = await res.json()
-      console.log('✅ Content saved to backend:', savedData)
-      return savedData.id // Return the real backend ID
-    } catch (error) {
-      console.error('❌ Failed to save to backend:', error)
-      return null
+      const savedData = await res.json();
+      console.log('✅ Backend response:', savedData);
+
+      if (!savedData?.data?.id) {
+        console.error('❌ Backend ID missing', savedData);
+        return null;
+      }
+
+      return savedData.data.id;
+    } catch (err) {
+      console.error('❌ saveToBackend failed:', err);
+      return null;
     }
-  }
+  };
 
   const generateContent = async () => {
     if (!idea.trim()) {
@@ -126,32 +172,28 @@ const AIContentStudio = () => {
 
       const data = await response.json()
 
-      // For chatgpt mode - just update the input field
       if (activeMode === 'chatgpt') {
         setIdea(data.published_text || data.polished_text || data.output)
         setIsLoading(false)
         return
       }
 
-      // Prepare content data
       let generatedImageUrl = null
       let caption = data.caption || data.published_text || data.polished_text || data.output
 
-      // For image mode - set image and caption
       if (activeMode === 'image' && data.image_data) {
         generatedImageUrl = data.image_data.startsWith('data:')
           ? data.image_data
           : `data:image/png;base64,${data.image_data}`
-        
+
         setGeneratedImage(generatedImageUrl)
         setGeneratedContent(caption)
       } else {
         setGeneratedContent(caption)
       }
 
-      // Create new request object
       const newRequest = {
-        id: Date.now(), // Frontend ID for React keys
+        id: Date.now(),
         type: activeMode,
         content: caption,
         caption: caption,
@@ -160,21 +202,47 @@ const AIContentStudio = () => {
         status: 'pending',
         timestamp: new Date().toISOString(),
         originalIdea: idea,
-        backendId: null // Will be set after saving
+        backendId: null
       }
 
-      // Save to backend and get real ID
-      const backendId = await saveToBackend(newRequest)
-      if (backendId) {
-        newRequest.backendId = backendId
-        console.log(`✅ Content saved with backend ID: ${backendId}`)
-      } else {
-        console.warn('⚠️ Could not save to backend, APIs will be skipped')
-      }
-
-      setRequests(prev => [newRequest, ...prev])
+      // ✅ OPTION A: If N8N saves to backend, DON'T save here
+      // Just add to local notifications without backendId
+      console.log('📌 N8N will save to backend, adding to notifications only');
       
-      // Reset form after successful generation
+      // Wait 2 seconds for N8N to save, then fetch the ID
+      setTimeout(async () => {
+        try {
+          const checkRes = await fetch(BACKEND_API);
+          if (checkRes.ok) {
+            const existing = await checkRes.json();
+            const found = existing.data?.find(item => {
+              const isSameCaption = item.caption === caption;
+              const createdAt = new Date(item.created_at);
+              const now = new Date();
+              const diffSeconds = (now - createdAt) / 1000;
+              return isSameCaption && diffSeconds < 5;
+            });
+            
+            if (found) {
+              console.log('✅ Found backend ID from N8N:', found.id);
+              newRequest.backendId = found.id;
+              setRequests(prev => 
+                prev.map(r => r.id === newRequest.id ? {...r, backendId: found.id} : r)
+              );
+            }
+          }
+        } catch (err) {
+          console.error('Failed to fetch backend ID:', err);
+        }
+      }, 2000);
+
+      // Add to notifications immediately
+      setRequests(prev => {
+        const exists = prev.find(r => r.id === newRequest.id);
+        if (exists) return prev;
+        return [newRequest, ...prev];
+      });
+
       setIdea('')
       setUploadedImage(null)
       setUploadedFile(null)
@@ -187,6 +255,12 @@ const AIContentStudio = () => {
     setIsLoading(false)
   }
 
+  // ✅ Remove notification after approval/rejection
+  const removeNotification = (requestId) => {
+    setRequests(prev => prev.filter(r => r.id !== requestId));
+  };
+
+  // ✅ Filter pending requests for notification badge
   const pendingRequests = requests.filter(r => r.status === 'pending')
 
   return (
@@ -199,6 +273,7 @@ const AIContentStudio = () => {
         pendingRequests={pendingRequests}
         setShowNewPostModal={setShowNewPostModal}
         setShowBloatoPostModal={setShowBloatoPostModal}
+        onApproveFromHistory={handleApproveFromHistory}
         cardBg={cardBg}
         textColor={textColor}
         textSecondary={textSecondary}
@@ -249,15 +324,12 @@ const AIContentStudio = () => {
         <ApprovalModal
           currentRequest={currentRequest}
           handleApproval={(req, approved) => {
-            setRequests(prev =>
-              prev.map(r =>
-                r.id === req.id ? { ...r, status: approved ? 'approved' : 'rejected' } : r
-              )
-            )
             if (approved) {
               setShowApprovalModal(false)
               setShowShareModal(true)
             } else {
+              // ✅ Remove from notifications on reject
+              removeNotification(req.id);
               setShowApprovalModal(false)
             }
           }}
@@ -276,13 +348,6 @@ const AIContentStudio = () => {
           currentRequest={currentRequest}
           setShowPreview={setShowPreview}
           handleApproval={(req, approved) => {
-            setRequests(prev =>
-              prev.map(r =>
-                approved
-                  ? { ...r, status: 'approved' }
-                  : r
-              )
-            )
             setShowPreview(false)
             setShowShareModal(true)
           }}
@@ -297,14 +362,15 @@ const AIContentStudio = () => {
         <ShareModal
           currentRequest={currentRequest}
           shareToSocial={(platform) => {
-            setRequests(prev =>
-              prev.map(r =>
-                r.id === currentRequest.id ? { ...r, status: 'approved' } : r
-              )
-            )
+            // ✅ Remove from notifications after sharing
+            removeNotification(currentRequest.id);
             setShowShareModal(false)
           }}
           setShowShareModal={setShowShareModal}
+          onPublishSuccess={() => {
+            // ✅ Remove from notifications after successful publish
+            removeNotification(currentRequest.id);
+          }}
           darkMode={darkMode}
           cardBg={cardBg}
           textColor={textColor}
