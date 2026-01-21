@@ -1,125 +1,227 @@
-🧠 AI Content Studio
-Create. Generate. Publish.
-AI Content Studio is an intelligent content automation platform that transforms raw ideas into high-quality AI content and automatically publishes it on social media after approval.
-![Dashboard](public/Dashboard.png)
+# Simon Portal
+
+**Simon Portal** is an AI-powered social media automation platform that helps users create, review, approve, and publish social media content across multiple platforms from a single dashboard.
+
+The system is intentionally kept simple and practical, focusing only on working, production-ready features with manual approval control.
+
+---
+
+## 🚀 Key Highlights
+
+* AI-assisted text generation and enhancement
+* Text-to-image generation
+* Manual approval and rejection workflow
+* Multi-platform social media publishing
+* Complete content history and status tracking
+
+---
+
+## 🧠 Technology Stack
+
+### Frontend
+
+* React.js
+* Tailwind CSS
+
+### Backend
+
+* Node.js
+* MySQL
+
+### AI & Automation
+
+* **Text AI**: Gemini API
+* **Image AI**: Pollinations (Free API)
+* **Automation Engine**: n8n
+
+### Social Media Integrations
+
+* Instagram
+* Facebook
+* Twitter (X)
+* LinkedIn
+
+---
+
+## 📸 Screenshots
+
+> Add project screenshots in the `/screenshots` folder and reference them below.
+
+```md
+/screenshots/login.png
+/screenshots/dashboard.png
+/screenshots/create-post.png
+/screenshots/ai-content.png
+/screenshots/history.png
+```
+
+Example usage:
+
+```md
+![Login Screen](screenshots/login.png)
+![Dashboard](screenshots/dashboard.png)
+```
+
+---
+
+## 🔐 User Flow (Step-by-Step)
+
+### Step 1: Login
+
+User logs in to Simon Portal using valid credentials.
+
+[Login Screen](../Frontend/public/login.png)
+
+---
+
+### Step 2: Write Prompt / Custom Text
+
+* User enters custom text in the input box.
+* This text works as a **prompt**.
+* User can manually edit the text before generating content.
+
+![Dashboard](../Frontend/public/Dashboard.png)
 
 
-Live Concept
-AI Content Studio provides an end-to-end workflow:
-Idea → AI Generation → Approval → Auto-Posting
+---
 
-Core Features
-Idea to AI Prompt Conversion
-Users can enter any raw idea or text. With one click, the system converts it into an optimized AI-ready prompt.
-AI Content Generation (4 Modes)
-The platform supports four main AI modes:
-ModeDescriptionChatGPT PromptConverts ideas into powerful ChatGPT promptsSocial Media PostGenerates ready-to-publish social media contentImage GenerationCreates AI image prompts and generates imagesUGC Video ScriptCreates short-form UGC video scripts
-Image & Video from Prompt
-Generate AI images directly from your prompt or create UGC video scripts using your prompt with optional image support.
-Approval Workflow + Automation
-Every generated item creates an approval request:
+### Step 3: AI Content Generation
 
-The request appears in the notification panel
-Admin/User reviews the content
-After approval, the system automatically triggers n8n automation and posts the content to selected social media platforms
+#### Text Processing
 
-n8n Integration
-![workflow](public/workflow.png)
-All content generation and publishing actions are connected to n8n workflows:
+* The entered text is sent to **Gemini API**.
+* Gemini improves text quality, tone, and structure.
 
-AI processing through LLM APIs
-Image generation via AI services
-Approval handling and workflow logic
-Social media posting automation to Twitter, LinkedIn, Instagram
+#### Image Generation
 
-This allows the platform to run without manual intervention after approval.
-n8n Workflow Components:
+* The same prompt is used to generate an image.
+* Image generation is done using **Pollinations API**.
+* Image generation runs asynchronously.
 
-Webhook triggers for content requests
-AI Agent for intelligent processing
-Gemini Vision for image analysis
-Multiple image generation and encoding nodes
-Format text response handling
-Return response to frontend
+![Text - Image](../Frontend/public/Text%20To%20Imag.png)
 
 
-Smart Notification System
-Each request is tracked with real-time status: Pending, Approved, or Rejected. Users can preview, approve, or reject content directly from the notification panel.
+---
 
-Tech Stack
-LayerTechnologyFrontendReact.js, Tailwind CSSAutomationn8nAI ProcessingLLM APIs via n8nUI IconsLucide ReactState ManagementReact HooksDeployment ReadyYes
+### Step 4: Notification & Review
 
-Application Flow
-User Idea
-   ↓
-AI Mode Selection
-   ↓
-AI Content Generated
-   ↓
-Approval Request Created
-   ↓
-Notification Panel
-   ↓
-Admin Approval
-   ↓
-n8n Automation Triggered
-   ↓
-Social Media Auto-Posting
+* Once image generation is complete, a notification is shown.
+* User can:
 
-User Interface Highlights
+  * View generated image
+  * Review caption
+  * Edit caption if needed
 
-Clean modern UI with intuitive navigation
-Dark and Light mode support
-Animated transitions for smooth experience
-Live preview before publishing
-Comprehensive approval and notification dashboard
+![Nortification](../Frontend//public/ImageRequest.png)
+
+---
+
+### Step 5: Approve or Reject
 
 
-How to Run Locally
-Prerequisites
-
-Node.js v16 or higher
-n8n instance running (local or cloud)
-API keys for AI services
-
-Installation Steps
-bash# Clone the repository
-git clone <your-repo-url>
-cd ai-content-studio
-
-# Install dependencies
-npm install
-
-# Configure environment variables
-cp .env.example .env
-# Edit .env with your n8n webhook URL and API keys
-
-# Start development server
-npm run dev
-n8n Setup
-
-Import the workflow from /n8n-workflows/content-studio.json
-Configure webhook URLs in the workflow
-Add your AI service credentials (OpenAI, Gemini, etc.)
-Activate the workflow
-Copy the webhook URL to your .env file
+![Content Approval Waiting](../Frontend/public/ApprovalPage.png)
 
 
-Use Cases
+#### Approve
 
-Social media agencies managing multiple clients
-Marketing teams automating content pipelines
-Content creators scaling their output
-AI automation platforms needing content workflows
-SaaS product builders integrating AI features
+* User selects platforms:
+
+  * Instagram
+  * Facebook
+  * Twitter (X)
+  * LinkedIn
+* On approval, content is sent to **n8n workflow**.
+* n8n handles publishing via platform APIs.
 
 
-Why This Project is Valuable
-This system removes manual work from the entire content lifecycle and replaces it with a fully automated AI-driven publishing pipeline.
-Key Benefits:
-Save Hours Daily by automating content creation and publishing
-Consistent Quality through AI-powered brand-aligned content
-Approval Control with human oversight before publishing
-Multi-Platform posting to all social channels simultaneously
-Scalable infrastructure to handle unlimited content requests
-Extensible architecture to add new AI modes and platforms
+![Post On SocialMedia](../Frontend/public/ShareonSocail.png)
+
+
+#### Reject
+
+* Content is rejected.
+* No publishing occurs.
+* Status is saved for record.
+
+---
+
+### Step 6: Publish Content
+
+* Approved content is published to selected platforms.
+* Publishing is handled by **n8n automation workflows**.
+
+---
+
+### Step 7: Content History
+
+The **History** section shows:
+
+* Pending posts
+* Approved posts
+* Rejected posts
+
+From history, user can:
+
+* Re-approve pending content
+* Reject pending content
+* Track publish status
+
+![Dashboard](../Frontend/public/)
+
+---
+
+## 🔄 n8n Workflow Overview
+
+n8n is responsible for:
+
+* Receiving generated image URLs
+* Managing approval flow
+* Routing content to correct social platform
+* Executing API calls for publishing
+
+Each platform has its own conditional workflow path:
+
+* Instagram
+* Facebook
+* Twitter (X)
+* LinkedIn
+
+---
+
+## 📌 Current Features (Stable)
+
+* Custom post creation
+* AI-enhanced captions
+* Text-to-image generation
+* Approval & rejection system
+* Multi-platform publishing
+* Content history tracking
+
+---
+
+## 🔮 Future Scope
+
+### Bloato Integration
+
+* Planned support for 10+ social platforms
+* Advanced scheduling
+* Bulk posting
+
+---
+
+## ✅ Benefits
+
+* Simple and fast workflow
+* Full manual control before publishing
+* Multi-platform posting from one place
+* Clear audit trail with history
+
+---
+
+## 📄 Conclusion
+
+Simon Portal is a focused, production-ready solution for AI-based social media content creation and publishing. It combines Gemini for text intelligence, Pollinations for image generation, and n8n for automation—providing a clean and controlled workflow with room for future expansion.
+
+---
+
+**Author:** Sumit
