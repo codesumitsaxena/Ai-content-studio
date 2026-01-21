@@ -43,32 +43,13 @@ The system is intentionally kept simple and practical, focusing only on working,
 
 ---
 
-## 📸 Screenshots
-
-> Add project screenshots in the `/screenshots` folder and reference them below.
-
-```md
-/screenshots/login.png
-/screenshots/dashboard.png
-/screenshots/create-post.png
-/screenshots/ai-content.png
-/screenshots/history.png
-```
-
-Example usage:
-
-```md
-![Login Screen](screenshots/login.png)
-![Dashboard](screenshots/dashboard.png)
-```
-
----
-
 ## 🔐 User Flow (Step-by-Step)
 
 ### Step 1: Login
 
 User logs in to Simon Portal using valid credentials.
+
+[LoginScreen](./Frontend/public/login.png)
 
 ---
 
@@ -77,6 +58,9 @@ User logs in to Simon Portal using valid credentials.
 * User enters custom text in the input box.
 * This text works as a **prompt**.
 * User can manually edit the text before generating content.
+
+![HomePage](./Frontend/public/HomePage.png)
+
 
 ---
 
@@ -93,6 +77,9 @@ User logs in to Simon Portal using valid credentials.
 * Image generation is done using **Pollinations API**.
 * Image generation runs asynchronously.
 
+![Text - Image](../Frontend/public/Text%20To%20Imag.png)
+
+
 ---
 
 ### Step 4: Notification & Review
@@ -104,9 +91,15 @@ User logs in to Simon Portal using valid credentials.
   * Review caption
   * Edit caption if needed
 
+![Nortification](../Frontend//public/ImageRequest.png)
+
 ---
 
 ### Step 5: Approve or Reject
+
+
+![Content Approval Waiting](../Frontend/public/ApprovalPage.png)
+
 
 #### Approve
 
@@ -118,6 +111,10 @@ User logs in to Simon Portal using valid credentials.
   * LinkedIn
 * On approval, content is sent to **n8n workflow**.
 * n8n handles publishing via platform APIs.
+
+
+![Post On SocialMedia](../Frontend/public/ShareonSocail.png)
+
 
 #### Reject
 
@@ -148,6 +145,8 @@ From history, user can:
 * Reject pending content
 * Track publish status
 
+![Content-History](../Frontend/public/imageHistory.png)
+
 ---
 
 ## 🔄 n8n Workflow Overview
@@ -158,6 +157,9 @@ n8n is responsible for:
 * Managing approval flow
 * Routing content to correct social platform
 * Executing API calls for publishing
+
+![Ai-Content-Studio](../Frontend/public/workflow.png)
+
 
 Each platform has its own conditional workflow path:
 
