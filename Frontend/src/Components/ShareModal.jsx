@@ -26,7 +26,7 @@ const ShareModal = ({ shareToSocial, setShowShareModal, currentRequest, onPublis
   const [selected, setSelected] = useState([])
   const [isPosting, setIsPosting] = useState(false)
 
-  const N8N_WEBHOOK_URL = 'https://n8n.avertisystems.com/webhook-test/social-post'
+  const N8N_WEBHOOK_URL = 'https://n8n.avertisystems.com/webhook/social-post'
 
   const platforms = [
     { id: 'instagram', name: 'Instagram', icon: Instagram, color: '#E1306C', bgColor: 'bg-pink-50', borderColor: 'border-pink-500', textColor: 'text-pink-600' },
