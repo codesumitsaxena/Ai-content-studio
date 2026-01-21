@@ -49,7 +49,7 @@ The system is intentionally kept simple and practical, focusing only on working,
 
 User logs in to Simon Portal using valid credentials.
 
-[Login-Screen](./public/loginPage.png)
+![Login Screen](public/login.png)
 
 ---
 
