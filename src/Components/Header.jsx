@@ -11,10 +11,138 @@ import {
   Edit2,
   Home,
   Calendar,
-  Clock
+  Clock,
+  Key,
+  Save,
+  RotateCcw
 } from 'lucide-react'
 
 const BASE_URL = 'http://localhost:3000/api/content'
+const WEBHOOK_URL = 'https://n8n.avertisystems.com/webhook-test/api-key-webhook'
+
+// API Key Modal Component
+const ApiKeyModal = ({ showModal, setShowModal }) => {
+  const [apiKey, setApiKey] = useState('')
+  const [loading, setLoading] = useState(false)
+  const [response, setResponse] = useState(null)
+  const [error, setError] = useState(null)
+
+  const handleSave = async () => {
+    if (!apiKey.trim()) {
+      setError('Please enter an API key')
+      return
+    }
+
+    setLoading(true)
+    setError(null)
+    setResponse(null)
+
+    try {
+      const res = await fetch(WEBHOOK_URL, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ apiKey: apiKey })
+      })
+
+      const data = await res.json()
+      setResponse(data)
+      
+      if (res.ok) {
+        setTimeout(() => {
+          setShowModal(false)
+          setApiKey('')
+          setResponse(null)
+        }, 2000)
+      }
+    } catch (err) {
+      setError('Failed to save API key: ' + err.message)
+      console.error('Webhook error:', err)
+    } finally {
+      setLoading(false)
+    }
+  }
+
+  if (!showModal) return null
+
+  return (
+    <div className="fixed inset-0 bg-black/50 flex items-center justify-center p-4 z-50">
+      <div className="bg-white w-full max-w-md rounded-2xl shadow-2xl overflow-hidden">
+        {/* Header */}
+        <div className="bg-gradient-to-r from-purple-600 to-indigo-600 px-6 py-4 flex items-center justify-between">
+          <div className="flex items-center gap-3">
+            <div className="bg-white/20 backdrop-blur-sm p-2 rounded-lg">
+              <Key className="w-5 h-5 text-white" />
+            </div>
+            <h2 className="text-white font-bold text-lg">API Settings</h2>
+          </div>
+          <button
+            onClick={() => setShowModal(false)}
+            className="text-white/90 hover:bg-white/20 p-2 rounded-lg transition-all"
+          >
+            <X className="w-5 h-5" />
+          </button>
+        </div>
+
+        {/* Content */}
+        <div className="p-6 space-y-4">
+          <div>
+            <label className="block text-sm font-semibold text-gray-700 mb-2">
+              Gemini API Key
+            </label>
+            <input
+              type="password"
+              value={apiKey}
+              onChange={(e) => setApiKey(e.target.value)}
+              placeholder="Enter your Gemini API key..."
+              className="w-full border-2 border-gray-300 rounded-lg px-4 py-3 text-sm focus:ring-2 focus:ring-purple-500 focus:border-purple-500"
+              disabled={loading}
+            />
+          </div>
+
+          {/* Error Message */}
+          {error && (
+            <div className="bg-red-50 border-2 border-red-200 rounded-lg p-3 flex items-start gap-2">
+              <XCircle className="w-5 h-5 text-red-600 flex-shrink-0 mt-0.5" />
+              <p className="text-sm text-red-700">{error}</p>
+            </div>
+          )}
+
+          {/* Success Response */}
+          {response && (
+            <div className="bg-green-50 border-2 border-green-200 rounded-lg p-3 flex items-start gap-2">
+              <Check className="w-5 h-5 text-green-600 flex-shrink-0 mt-0.5" />
+              <div className="text-sm text-green-700">
+                <p className="font-semibold mb-1">Success!</p>
+                <pre className="text-xs bg-white/50 rounded p-2 overflow-auto">
+                  {JSON.stringify(response, null, 2)}
+                </pre>
+              </div>
+            </div>
+          )}
+
+          {/* Save Button */}
+          <button
+            onClick={handleSave}
+            disabled={loading}
+            className="w-full flex items-center justify-center gap-2 bg-gradient-to-r from-purple-600 to-indigo-600 text-white py-3 rounded-lg hover:from-purple-700 hover:to-indigo-700 transition-all font-semibold shadow-lg disabled:opacity-50 disabled:cursor-not-allowed"
+          >
+            {loading ? (
+              <>
+                <RefreshCw className="w-4 h-4 animate-spin" />
+                Saving...
+              </>
+            ) : (
+              <>
+                <Save className="w-4 h-4" />
+                Save API Key
+              </>
+            )}
+          </button>
+        </div>
+      </div>
+    </div>
+  )
+}
 
 // Social Media Icons Component
 const SocialMediaIcons = ({ socialMediaPosted }) => {
@@ -92,6 +220,7 @@ const HistoryNavbar = ({ showHistory, setShowHistory, onApprove }) => {
   const [editingId, setEditingId] = useState(null)
   const [editedCaption, setEditedCaption] = useState('')
   const [hoveredId, setHoveredId] = useState(null)
+  const [flippedCards, setFlippedCards] = useState(new Set())
 
   const fetchContent = async () => {
     setLoading(true)
@@ -142,7 +271,7 @@ const HistoryNavbar = ({ showHistory, setShowHistory, onApprove }) => {
   const handleSaveCaption = async (id) => {
     try {
       const res = await fetch(`${BASE_URL}/${id}`, {
-        method: 'PATCH',
+        method: 'PUT',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ caption: editedCaption })
       })
@@ -157,6 +286,7 @@ const HistoryNavbar = ({ showHistory, setShowHistory, onApprove }) => {
 
       setEditingId(null)
       setEditedCaption('')
+      alert('Caption updated successfully!')
     } catch (err) {
       console.error('Save error:', err)
       alert('Failed to save caption')
@@ -199,6 +329,18 @@ const HistoryNavbar = ({ showHistory, setShowHistory, onApprove }) => {
   const handleCancelEdit = () => {
     setEditingId(null)
     setEditedCaption('')
+  }
+
+  const toggleFlip = (id) => {
+    setFlippedCards(prev => {
+      const newSet = new Set(prev)
+      if (newSet.has(id)) {
+        newSet.delete(id)
+      } else {
+        newSet.add(id)
+      }
+      return newSet
+    })
   }
 
   const filtered =
@@ -277,150 +419,217 @@ const HistoryNavbar = ({ showHistory, setShowHistory, onApprove }) => {
             {filtered.map(item => (
               <div 
                 key={item.id} 
-                className="bg-white rounded-2xl overflow-hidden shadow-md hover:shadow-2xl transition-all duration-300 border border-gray-200 group"
+                className="flip-card-container"
                 onMouseEnter={() => setHoveredId(item.id)}
                 onMouseLeave={() => setHoveredId(null)}
               >
-                {/* Image Section */}
-                {item.image && (
-                  <div className="relative h-48 bg-gray-100 overflow-hidden">
-                    <img
-                      src={item.image}
-                      alt="Content preview"
-                      className="w-full h-full object-cover transition-transform duration-300 group-hover:scale-105"
-                    />
-                    <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent"></div>
-                    
-                    {/* Date Badge */}
-                    <div className="absolute top-2 right-2 bg-white/95 backdrop-blur-sm px-2.5 py-1 rounded-lg shadow-lg flex items-center gap-1">
-                      <Calendar className="w-3 h-3 text-blue-600" />
-                      <span className="text-xs font-semibold text-gray-700">
-                        {formatDate(item.createdAt).split(',')[0]}
-                      </span>
-                    </div>
-                  </div>
-                )}
-
-                {/* Content Section */}
-                <div className="p-4">
-                  {/* Caption with Edit Button */}
-                  <div className="mb-3">
-                    {item.status === 'pending' && editingId === item.id ? (
-                      <div className="space-y-2">
-                        <textarea
-                          value={editedCaption}
-                          onChange={e => setEditedCaption(e.target.value)}
-                          className="w-full border-2 border-blue-400 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-blue-500 focus:border-blue-500 resize-none"
-                          rows="3"
-                          placeholder="Enter new caption..."
-                          autoFocus
+                <div className={`flip-card-inner ${flippedCards.has(item.id) ? 'flipped' : ''}`}>
+                  {/* FRONT SIDE */}
+                  <div className="flip-card-front bg-white rounded-2xl overflow-hidden shadow-md border border-gray-200">
+                    {/* Image Section */}
+                    {item.image && (
+                      <div className="relative h-44 bg-gray-100 overflow-hidden group">
+                        <img
+                          src={item.image}
+                          alt="Content preview"
+                          className="w-full h-full object-cover transition-transform duration-300 group-hover:scale-105"
                         />
-                        <div className="flex gap-2">
+                        <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent"></div>
+                        
+                        {/* Date Badge with Flip Icon */}
+                        <div className="absolute top-2 right-2 flex items-center gap-2">
+                          <div className="bg-white/95 backdrop-blur-sm px-2.5 py-1 rounded-lg shadow-lg flex items-center gap-1">
+                            <Calendar className="w-3 h-3 text-blue-600" />
+                            <span className="text-xs font-semibold text-gray-700">
+                              {formatDate(item.createdAt).split(',')[0]}
+                            </span>
+                          </div>
                           <button
-                            onClick={() => handleSaveCaption(item.id)}
-                            className="flex-1 flex items-center justify-center gap-1.5 bg-gradient-to-r from-green-500 to-green-600 text-white py-2 rounded-lg hover:from-green-600 hover:to-green-700 transition-all font-semibold text-sm shadow-md"
+                            onClick={() => toggleFlip(item.id)}
+                            className="bg-blue-600 hover:bg-blue-700 p-1.5 rounded-lg shadow-lg transition-all group/flip"
+                            title="View full image"
                           >
-                            <Check className="w-4 h-4" />
-                            Save
-                          </button>
-                          <button
-                            onClick={handleCancelEdit}
-                            className="flex-1 flex items-center justify-center gap-1.5 bg-gray-100 text-gray-700 py-2 rounded-lg hover:bg-gray-200 transition-all font-semibold text-sm"
-                          >
-                            <X className="w-4 h-4" />
-                            Cancel
+                            <RotateCcw className="w-4 h-4 text-white group-hover/flip:rotate-180 transition-transform duration-300" />
                           </button>
                         </div>
                       </div>
-                    ) : (
-                      <div className="relative">
-                        <p className="text-sm text-gray-700 leading-relaxed line-clamp-2 min-h-[40px] mb-2">
-                          {item.prompt}
-                        </p>
-                        
-                        {/* Edit Button - Shows on Hover */}
-                        {item.status === 'pending' && hoveredId === item.id && (
-                          <button
-                            onClick={() => {
-                              setEditingId(item.id)
-                              setEditedCaption(item.prompt)
-                            }}
-                            className="absolute -top-1 right-0 p-1.5 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-all shadow-lg animate-in fade-in duration-200"
-                            title="Edit caption"
-                          >
-                            <Edit2 className="w-4 h-4" />
-                          </button>
+                    )}
+
+                    {/* Content Section */}
+                    <div className="p-3">
+                      {/* Caption with Edit Button */}
+                      <div className="mb-2">
+                        {item.status === 'pending' && editingId === item.id ? (
+                          <div className="space-y-2">
+                            <textarea
+                              value={editedCaption}
+                              onChange={e => setEditedCaption(e.target.value)}
+                              className="w-full border-2 border-blue-400 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-blue-500 focus:border-blue-500 resize-none"
+                              rows="4"
+                              placeholder="Enter new caption..."
+                              autoFocus
+                            />
+                            <div className="flex gap-2">
+                              <button
+                                onClick={() => handleSaveCaption(item.id)}
+                                className="flex-1 flex items-center justify-center gap-1.5 bg-gradient-to-r from-green-500 to-green-600 text-white py-2 rounded-lg hover:from-green-600 hover:to-green-700 transition-all font-semibold text-sm shadow-md"
+                              >
+                                <Check className="w-4 h-4" />
+                                Save
+                              </button>
+                              <button
+                                onClick={handleCancelEdit}
+                                className="flex-1 flex items-center justify-center gap-1.5 bg-gray-100 text-gray-700 py-2 rounded-lg hover:bg-gray-200 transition-all font-semibold text-sm"
+                              >
+                                <X className="w-4 h-4" />
+                                Cancel
+                              </button>
+                            </div>
+                          </div>
+                        ) : (
+                          <div className="relative">
+                            <p className="text-sm text-gray-700 leading-relaxed line-clamp-4 min-h-[72px] mb-1">
+                              {item.prompt}
+                            </p>
+                            
+                            {/* Edit Button - Shows on Hover (but no flip trigger) */}
+                            {item.status === 'pending' && hoveredId === item.id && editingId !== item.id && (
+                              <button
+                                onClick={() => {
+                                  setEditingId(item.id)
+                                  setEditedCaption(item.prompt)
+                                }}
+                                className="absolute -top-1 right-0 p-1.5 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-all shadow-lg"
+                                title="Edit caption"
+                              >
+                                <Edit2 className="w-4 h-4" />
+                              </button>
+                            )}
+                          </div>
                         )}
                       </div>
-                    )}
-                  </div>
 
-                  {/* Social Media Icons + Timestamps */}
-                  <div className="mb-3 space-y-2">
-                    {/* Social Media Published Status */}
-                    <div className="flex items-center justify-between pb-2 border-b border-gray-100">
-                      <span className="text-xs font-semibold text-gray-500 uppercase tracking-wide">Publish to:</span>
-                      <SocialMediaIcons socialMediaPosted={item.socialMediaPosted} />
-                    </div>
+                      {/* Social Media Icons + Timestamps */}
+                      <div className="mb-2 space-y-1.5">
+                        {/* Social Media Published Status */}
+                        <div className="flex items-center justify-between pb-1.5 border-b border-gray-100">
+                          <span className="text-xs font-semibold text-gray-500 uppercase tracking-wide">Publish to:</span>
+                          <SocialMediaIcons socialMediaPosted={item.socialMediaPosted} />
+                        </div>
 
-                    {/* Timestamps */}
-                    <div className="space-y-1">
-                      <div className="flex items-center gap-1.5 text-xs text-gray-500">
-                        <Clock className="w-3 h-3 text-gray-400" />
-                        <span className="font-medium">Created:</span>
-                        <span className="text-xs">{formatDate(item.createdAt)}</span>
+                        {/* Timestamps */}
+                        <div className="space-y-0.5">
+                          <div className="flex items-center gap-1.5 text-xs text-gray-500">
+                            <Clock className="w-3 h-3 text-gray-400" />
+                            <span className="font-medium">Created:</span>
+                            <span className="text-xs">{formatDate(item.createdAt)}</span>
+                          </div>
+                          {item.updatedAt && item.updatedAt !== item.createdAt && (
+                            <div className="flex items-center gap-1.5 text-xs text-gray-500">
+                              <Clock className="w-3 h-3 text-gray-400" />
+                              <span className="font-medium">Updated:</span>
+                              <span className="text-xs">{formatDate(item.updatedAt)}</span>
+                            </div>
+                          )}
+                        </div>
                       </div>
-                      {item.updatedAt && item.updatedAt !== item.createdAt && (
-                        <div className="flex items-center gap-1.5 text-xs text-gray-500">
-                          <Clock className="w-3 h-3 text-gray-400" />
-                          <span className="font-medium">Updated:</span>
-                          <span className="text-xs">{formatDate(item.updatedAt)}</span>
+
+                      {/* Action Buttons */}
+                      {item.status === 'pending' && editingId !== item.id && (
+                        <div className="flex gap-2">
+                          <button
+                            onClick={() => handleApprove(item)}
+                            className="flex-1 flex items-center justify-center gap-1.5 bg-gradient-to-r from-green-500 to-green-600 text-white py-2 rounded-lg hover:from-green-600 hover:to-green-700 transition-all font-semibold text-sm shadow-md"
+                          >
+                            <Check className="w-4 h-4" />
+                            Approve
+                          </button>
+                          <button
+                            onClick={() => handleReject(item.id)}
+                            className="flex-1 flex items-center justify-center gap-1.5 bg-gradient-to-r from-red-500 to-red-600 text-white py-2 rounded-lg hover:from-red-600 hover:to-red-700 transition-all font-semibold text-sm shadow-md"
+                          >
+                            <XCircle className="w-4 h-4" />
+                            Reject
+                          </button>
+                        </div>
+                      )}
+
+                      {/* Status Badge for Approved */}
+                      {item.status === 'approved' && (
+                        <div className="flex items-center justify-center gap-1.5 bg-green-50 text-green-700 py-2 rounded-lg font-semibold text-sm border-2 border-green-200">
+                          <Check className="w-4 h-4" />
+                          Approved
+                        </div>
+                      )}
+
+                      {/* Status Badge for Rejected */}
+                      {item.status === 'rejected' && (
+                        <div className="flex items-center justify-center gap-1.5 bg-red-50 text-red-700 py-2 rounded-lg font-semibold text-sm border-2 border-red-200">
+                          <XCircle className="w-4 h-4" />
+                          Rejected
                         </div>
                       )}
                     </div>
                   </div>
 
-                  {/* Action Buttons */}
-                  {item.status === 'pending' && editingId !== item.id && (
-                    <div className="flex gap-2">
-                      <button
-                        onClick={() => handleApprove(item)}
-                        className="flex-1 flex items-center justify-center gap-1.5 bg-gradient-to-r from-green-500 to-green-600 text-white py-2 rounded-lg hover:from-green-600 hover:to-green-700 transition-all font-semibold text-sm shadow-md"
-                      >
-                        <Check className="w-4 h-4" />
-                        Approve
-                      </button>
-                      <button
-                        onClick={() => handleReject(item.id)}
-                        className="flex-1 flex items-center justify-center gap-1.5 bg-gradient-to-r from-red-500 to-red-600 text-white py-2 rounded-lg hover:from-red-600 hover:to-red-700 transition-all font-semibold text-sm shadow-md"
-                      >
-                        <XCircle className="w-4 h-4" />
-                        Reject
-                      </button>
-                    </div>
-                  )}
-
-                  {/* Status Badge for Approved */}
-                  {item.status === 'approved' && (
-                    <div className="flex items-center justify-center gap-1.5 bg-green-50 text-green-700 py-2 rounded-lg font-semibold text-sm border-2 border-green-200">
-                      <Check className="w-4 h-4" />
-                      Approved
-                    </div>
-                  )}
-
-                  {/* Status Badge for Rejected */}
-                  {item.status === 'rejected' && (
-                    <div className="flex items-center justify-center gap-1.5 bg-red-50 text-red-700 py-2 rounded-lg font-semibold text-sm border-2 border-red-200">
-                      <XCircle className="w-4 h-4" />
-                      Rejected
-                    </div>
-                  )}
+                  {/* BACK SIDE - Full Image Only */}
+                  <div className="flip-card-back bg-gray-900 rounded-2xl overflow-hidden shadow-md border border-gray-200 relative">
+                    {item.image && (
+                      <>
+                        <img
+                          src={item.image}
+                          alt="Full preview"
+                          className="w-full h-full object-cover"
+                        />
+                        {/* Close/Back button on flipped side */}
+                        <button
+                          onClick={() => toggleFlip(item.id)}
+                          className="absolute top-2 right-2 bg-white/90 hover:bg-white p-2 rounded-lg shadow-lg transition-all"
+                          title="Back to details"
+                        >
+                          <X className="w-5 h-5 text-gray-700" />
+                        </button>
+                      </>
+                    )}
+                  </div>
                 </div>
               </div>
             ))}
           </div>
         )}
       </div>
+
+      <style jsx>{`
+        .flip-card-container {
+          perspective: 1000px;
+          height: 420px;
+        }
+
+        .flip-card-inner {
+          position: relative;
+          width: 100%;
+          height: 100%;
+          transition: transform 0.6s;
+          transform-style: preserve-3d;
+        }
+
+        .flip-card-inner.flipped {
+          transform: rotateY(180deg);
+        }
+
+        .flip-card-front,
+        .flip-card-back {
+          position: absolute;
+          width: 100%;
+          height: 100%;
+          backface-visibility: hidden;
+          -webkit-backface-visibility: hidden;
+        }
+
+        .flip-card-back {
+          transform: rotateY(180deg);
+        }
+      `}</style>
     </div>
   )
 }
@@ -434,6 +643,7 @@ const Header = ({
   onApproveFromHistory
 }) => {
   const [showHistory, setShowHistory] = useState(false)
+  const [showApiModal, setShowApiModal] = useState(false)
 
   return (
     <>
@@ -472,6 +682,14 @@ const Header = ({
             </button>
 
             <button
+              onClick={() => setShowApiModal(true)}
+              className="p-2.5 rounded-lg bg-white hover:bg-gray-50 transition-all border border-gray-200 shadow-sm"
+              title="API Settings"
+            >
+              <Key className="w-5 h-5 text-purple-600" />
+            </button>
+
+            <button
               onClick={() => setShowHistory(!showHistory)}
               className="p-2.5 rounded-lg bg-white hover:bg-gray-50 transition-all border border-gray-200 shadow-sm"
               title="View History"
@@ -495,6 +713,8 @@ const Header = ({
         </div>
       </header>
 
+      <ApiKeyModal showModal={showApiModal} setShowModal={setShowApiModal} />
+      
       <HistoryNavbar
         showHistory={showHistory}
         setShowHistory={setShowHistory}

@@ -1,7 +1,26 @@
 import React, { useState } from 'react'
-import { MessageSquare, Instagram, Wand2, Video, X, CheckCircle, XCircle, Edit2, Check } from 'lucide-react'
+import { MessageSquare, Instagram, Wand2, Video, X, CheckCircle, XCircle, Edit2, Check, Zap } from 'lucide-react'
 
 const BASE_URL = 'http://localhost:3000/api/content'
+
+const scrollbarStyles = `
+  .custom-scrollbar::-webkit-scrollbar {
+    width: 6px;
+  }
+  
+  .custom-scrollbar::-webkit-scrollbar-track {
+    background: transparent;
+  }
+  
+  .custom-scrollbar::-webkit-scrollbar-thumb {
+    background: #D1D5DB;
+    border-radius: 10px;
+  }
+  
+  .custom-scrollbar::-webkit-scrollbar-thumb:hover {
+    background: #9CA3AF;
+  }
+`;
 
 const ApprovalModal = ({
   currentRequest,
@@ -94,65 +113,62 @@ const ApprovalModal = ({
   }
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm px-4">
-      <div className="bg-white w-full max-w-2xl rounded-2xl shadow-2xl border border-gray-200 overflow-hidden">
+    <>
+      <style>{scrollbarStyles}</style>
+      <div className="fixed inset-0 bg-black/50 flex items-center justify-center p-4 z-50">
+        <div className="bg-white w-full max-w-xl rounded-3xl shadow-2xl overflow-hidden max-h-[90vh] flex flex-col">
 
-        {/* Header */}
-        <div className="flex items-center justify-between px-6 py-4 border-b border-gray-200 bg-gradient-to-r from-blue-50 to-indigo-50">
-          <div className="flex items-center gap-3">
-            <div className={`w-10 h-10 rounded-xl flex items-center justify-center shadow-sm
-              ${currentRequest.type === 'chatgpt' ? 'bg-emerald-500 text-white' :
-                currentRequest.type === 'post' ? 'bg-blue-500 text-white' :
-                currentRequest.type === 'image' ? 'bg-purple-500 text-white' :
-                'bg-orange-500 text-white'}`}>
-              {currentRequest.type === 'chatgpt' && <MessageSquare className="w-5 h-5" />}
-              {currentRequest.type === 'post' && <Instagram className="w-5 h-5" />}
-              {currentRequest.type === 'image' && <Wand2 className="w-5 h-5" />}
-              {currentRequest.type === 'video' && <Video className="w-5 h-5" />}
+          {/* Header - Professional Gradient (Same as ShareModal) */}
+          <div className="bg-gradient-to-r from-blue-600 to-indigo-600 px-7 py-5 flex items-center justify-between flex-shrink-0">
+            <div className="flex items-center gap-3">
+              <div className="bg-white/20 backdrop-blur-sm p-2.5 rounded-xl">
+                {currentRequest.type === 'chatgpt' && <MessageSquare className="w-6 h-6 text-white" />}
+                {currentRequest.type === 'post' && <Instagram className="w-6 h-6 text-white" />}
+                {currentRequest.type === 'image' && <Wand2 className="w-6 h-6 text-white" />}
+                {currentRequest.type === 'video' && <Video className="w-6 h-6 text-white" />}
+              </div>
+              <div>
+                <h2 className="text-white font-bold text-xl tracking-tight">
+                  {currentRequest.type === 'chatgpt' ? 'ChatGPT Prompt' :
+                   currentRequest.type === 'post' ? 'Social Post' :
+                   currentRequest.type === 'image' ? 'AI Generated Content' :
+                   'Video Script'}
+                </h2>
+                <p className="text-blue-100 text-sm">
+                  {new Date(currentRequest.timestamp).toLocaleString()}
+                </p>
+              </div>
             </div>
-
-            <div>
-              <h3 className="font-bold text-lg text-gray-900">
-                {currentRequest.type === 'chatgpt' ? 'ChatGPT Prompt' :
-                 currentRequest.type === 'post' ? 'Social Post' :
-                 currentRequest.type === 'image' ? 'AI Generated Content' :
-                 'Video Script'}
-              </h3>
-              <p className="text-xs text-gray-500">
-                {new Date(currentRequest.timestamp).toLocaleString()}
-              </p>
-            </div>
+            <button
+              onClick={() => setShowApprovalModal(false)}
+              disabled={isProcessing}
+              className="text-white/90 hover:bg-white/20 p-2 rounded-lg transition-all duration-200 disabled:opacity-50"
+            >
+              <X className="w-5 h-5" />
+            </button>
           </div>
 
-          <button
-            onClick={() => setShowApprovalModal(false)}
-            disabled={isProcessing}
-            className="p-2 rounded-lg hover:bg-white/50 transition-colors disabled:opacity-50"
-          >
-            <X className="w-5 h-5 text-gray-600" />
-          </button>
-        </div>
-
-        {/* Content */}
-        <div className="max-h-[500px] overflow-y-auto">
-          <div className="p-6">
+          {/* Content - Scrollable (Same structure as ShareModal) */}
+          <div className="p-7 overflow-y-auto flex-1 custom-scrollbar">
             
             {/* Image Type - Show Generated Image + Caption */}
             {currentRequest.type === 'image' && currentRequest.generatedImage && (
               <div className="space-y-4">
-                {/* Image Preview - Reduced Size */}
-                <div className="flex justify-center bg-gray-50 rounded-xl p-4 border border-gray-200">
+                {/* Image Preview */}
+                <div className="mb-5 bg-gray-50 rounded-2xl p-4 border-2 border-gray-200">
                   <img
                     src={currentRequest.generatedImage}
                     alt="Generated"
-                    className="max-w-md max-h-80 w-auto h-auto object-contain rounded-lg shadow-lg"
+                    className="w-full max-h-64 object-contain rounded-xl border-2 border-gray-200"
                   />
                 </div>
                 
                 {/* Caption Display/Edit */}
                 <div>
                   <div className="flex items-center justify-between mb-3">
-                    <p className="text-sm font-bold text-gray-700">Caption</p>
+                    <p className="text-gray-700 font-semibold text-sm flex items-center gap-2">
+                      <span>📝</span> Caption
+                    </p>
                     {!isEditing && (
                       <button
                         onClick={() => setIsEditing(true)}
@@ -178,7 +194,7 @@ const ApprovalModal = ({
                         <button
                           onClick={handleSaveEdit}
                           disabled={isProcessing}
-                          className="flex-1 flex items-center justify-center gap-2 bg-gradient-to-r from-blue-600 to-indigo-600 text-white py-2.5 rounded-lg hover:from-blue-700 hover:to-indigo-700 transition-all font-semibold text-sm shadow-md disabled:opacity-50"
+                          className="flex-1 flex items-center justify-center gap-2 bg-gradient-to-r from-green-500 to-green-600 text-white py-2.5 rounded-xl hover:from-green-600 hover:to-green-700 transition-all font-semibold text-sm shadow-md disabled:opacity-50"
                         >
                           <Check className="w-4 h-4" />
                           Save Changes
@@ -189,7 +205,7 @@ const ApprovalModal = ({
                             setEditedCaption(currentRequest.caption || currentRequest.content)
                           }}
                           disabled={isProcessing}
-                          className="flex-1 flex items-center justify-center gap-2 bg-gray-100 text-gray-700 py-2.5 rounded-lg hover:bg-gray-200 transition-all font-semibold text-sm"
+                          className="flex-1 flex items-center justify-center gap-2 bg-gray-100 text-gray-700 py-2.5 rounded-xl hover:bg-gray-200 transition-all font-semibold text-sm"
                         >
                           <X className="w-4 h-4" />
                           Cancel
@@ -197,8 +213,10 @@ const ApprovalModal = ({
                       </div>
                     </div>
                   ) : (
-                    <div className="bg-gradient-to-br from-blue-50 to-indigo-50 rounded-xl p-4 text-sm text-gray-800 leading-relaxed border border-blue-200 shadow-sm">
-                      {currentRequest.caption || currentRequest.content}
+                    <div className="bg-gray-50 rounded-2xl p-4 border-2 border-gray-200">
+                      <p className="text-sm text-gray-800 leading-relaxed">
+                        {currentRequest.caption || currentRequest.content}
+                      </p>
                     </div>
                   )}
                 </div>
@@ -207,11 +225,11 @@ const ApprovalModal = ({
 
             {/* Video Type - Show Thumbnail */}
             {currentRequest.type === 'video' && currentRequest.image && (
-              <div className="flex justify-center bg-gray-50 rounded-xl p-4 border border-gray-200">
+              <div className="mb-5 bg-gray-50 rounded-2xl p-4 border-2 border-gray-200">
                 <img
                   src={currentRequest.image}
                   alt="Video Thumbnail"
-                  className="max-w-md max-h-80 w-auto h-auto object-contain rounded-lg shadow-lg"
+                  className="w-full max-h-64 object-contain rounded-xl"
                 />
               </div>
             )}
@@ -219,8 +237,10 @@ const ApprovalModal = ({
             {/* Original Input Text (if available) */}
             {currentRequest.originalText && currentRequest.type === 'image' && (
               <div className="mt-4">
-                <p className="text-sm font-bold text-gray-700 mb-2">Original Input</p>
-                <div className="bg-gray-50 rounded-lg p-3 text-sm text-gray-700 leading-relaxed border border-gray-200">
+                <p className="text-gray-700 font-semibold text-sm mb-2 flex items-center gap-2">
+                  <span>💭</span> Original Input
+                </p>
+                <div className="bg-gray-50 rounded-xl p-4 text-sm text-gray-700 leading-relaxed border-2 border-gray-200">
                   {currentRequest.originalText}
                 </div>
               </div>
@@ -228,36 +248,38 @@ const ApprovalModal = ({
 
             {/* Generated Content/Prompt (for non-image types) */}
             {currentRequest.type !== 'image' && (
-              <div className="bg-gray-50 rounded-xl p-4 text-sm text-gray-800 leading-relaxed whitespace-pre-wrap border border-gray-200 shadow-sm">
-                {currentRequest.content}
+              <div className="bg-gray-50 rounded-2xl p-4 border-2 border-gray-200">
+                <p className="text-sm text-gray-800 leading-relaxed whitespace-pre-wrap">
+                  {currentRequest.content}
+                </p>
               </div>
             )}
           </div>
+
+          {/* Footer Actions (Same style as ShareModal) */}
+          <div className="bg-gray-50 px-7 py-4 flex items-center justify-end gap-3 border-t border-gray-100 flex-shrink-0">
+            <button
+              onClick={handleRejectClick}
+              disabled={isProcessing || isEditing}
+              className="px-6 py-2.5 bg-gradient-to-r from-red-500 to-red-600 text-white font-semibold rounded-xl hover:from-red-600 hover:to-red-700 transition-all duration-200 shadow-lg shadow-red-500/30 hover:shadow-xl hover:shadow-red-500/40 flex items-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed"
+            >
+              <XCircle className="w-4 h-4" />
+              Reject
+            </button>
+
+            <button
+              onClick={handleApproveClick}
+              disabled={isProcessing || isEditing}
+              className="px-6 py-2.5 bg-gradient-to-r from-green-500 to-emerald-600 text-white font-semibold rounded-xl hover:from-green-600 hover:to-emerald-700 transition-all duration-200 shadow-lg shadow-green-500/30 hover:shadow-xl hover:shadow-green-500/40 flex items-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed"
+            >
+              <CheckCircle className="w-4 h-4" />
+              Approve & Share
+            </button>
+          </div>
+
         </div>
-
-        {/* Footer Actions */}
-        <div className="px-6 py-4 border-t border-gray-200 bg-gray-50 flex gap-3">
-          <button
-            onClick={handleRejectClick}
-            disabled={isProcessing || isEditing}
-            className="flex-1 py-3 rounded-xl font-bold text-sm bg-gradient-to-r from-red-500 to-red-600 text-white hover:from-red-600 hover:to-red-700 shadow-md transition-all flex items-center justify-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed"
-          >
-            <XCircle className="w-5 h-5" />
-            Reject
-          </button>
-
-          <button
-            onClick={handleApproveClick}
-            disabled={isProcessing || isEditing}
-            className="flex-1 py-3 rounded-xl font-bold text-sm bg-gradient-to-r from-green-500 to-emerald-600 text-white hover:from-green-600 hover:to-emerald-700 shadow-md transition-all flex items-center justify-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed"
-          >
-            <CheckCircle className="w-5 h-5" />
-            Approve & Share
-          </button>
-        </div>
-
       </div>
-    </div>
+    </>
   )
 }
 

@@ -43,41 +43,82 @@ const ShareModal = ({ shareToSocial, setShowShareModal, currentRequest, onPublis
     )
   }
 
+  // ✅ FIXED: Handle CORS errors for localhost images
   const optimizeImage = async (base64Url) => {
     return new Promise((resolve) => {
-      const img = new Image()
-      img.onload = () => {
-        const canvas = document.createElement('canvas')
-        const ctx = canvas.getContext('2d')
+      // ✅ Skip optimization for localhost images (CORS issue)
+      if (base64Url.startsWith('http://localhost') || base64Url.startsWith('http://127.0.0.1')) {
+        console.log('⚠️ Skipping optimization for localhost image (CORS)')
         
-        const maxWidth = 1080
-        const maxHeight = 1080
-        let width = img.width
-        let height = img.height
-        
-        const scale = Math.min(maxWidth / width, maxHeight / height, 1)
-        width = Math.floor(width * scale)
-        height = Math.floor(height * scale)
-        
-        canvas.width = width
-        canvas.height = height
-        
-        ctx.imageSmoothingEnabled = true
-        ctx.imageSmoothingQuality = 'high'
-        ctx.drawImage(img, 0, 0, width, height)
-        
-        const optimized = canvas.toDataURL('image/jpeg', 0.80)
-        resolve(optimized)
+        // Convert to base64 instead
+        fetch(base64Url)
+          .then(res => res.blob())
+          .then(blob => {
+            const reader = new FileReader()
+            reader.onloadend = () => resolve(reader.result)
+            reader.onerror = () => {
+              console.error('FileReader error, using original URL')
+              resolve(base64Url)
+            }
+            reader.readAsDataURL(blob)
+          })
+          .catch(err => {
+            console.error('Fetch error:', err, '- using original URL')
+            resolve(base64Url)
+          })
+        return
       }
+
+      // ✅ Only optimize base64 images
+      if (!base64Url.startsWith('data:')) {
+        console.log('⚠️ Not a base64 image, using original')
+        resolve(base64Url)
+        return
+      }
+
+      const img = new Image()
+      img.crossOrigin = 'anonymous' // ✅ Enable CORS
+      
+      img.onload = () => {
+        try {
+          const canvas = document.createElement('canvas')
+          const ctx = canvas.getContext('2d')
+          
+          const maxWidth = 1080
+          const maxHeight = 1080
+          let width = img.width
+          let height = img.height
+          
+          const scale = Math.min(maxWidth / width, maxHeight / height, 1)
+          width = Math.floor(width * scale)
+          height = Math.floor(height * scale)
+          
+          canvas.width = width
+          canvas.height = height
+          
+          ctx.imageSmoothingEnabled = true
+          ctx.imageSmoothingQuality = 'high'
+          ctx.drawImage(img, 0, 0, width, height)
+          
+          const optimized = canvas.toDataURL('image/jpeg', 0.80)
+          console.log('✅ Image optimized successfully')
+          resolve(optimized)
+        } catch (err) {
+          console.error('❌ Canvas error (CORS):', err)
+          resolve(base64Url)
+        }
+      }
+      
       img.onerror = () => {
-        console.error('Failed to optimize image, using original')
+        console.error('❌ Failed to load image, using original')
         resolve(base64Url)
       }
+      
       img.src = base64Url
     })
   }
 
-  // ✅ MAIN CHANGE: Update database with APPROVED status + platforms
+  // ✅ Update database with APPROVED status + platforms
   const updateDatabaseAfterPublish = async (publishedPlatforms) => {
     if (!currentRequest?.backendId) {
       console.error('❌ No backend ID found, cannot update database')
@@ -140,12 +181,24 @@ const ShareModal = ({ shareToSocial, setShowShareModal, currentRequest, onPublis
       
       let optimizedImage = null
       if (imageUrl) {
-        console.log('🔧 Optimizing image for social media...')
-        const beforeSize = imageUrl.length
-        optimizedImage = await optimizeImage(imageUrl)
-        const afterSize = optimizedImage.length
-        const reduction = ((1 - afterSize/beforeSize) * 100).toFixed(1)
-        console.log(`✅ Compressed: ${(beforeSize/1024).toFixed(0)}KB → ${(afterSize/1024).toFixed(0)}KB (${reduction}% smaller)`)
+        console.log('🔧 Processing image for social media...')
+        console.log('📎 Image URL:', imageUrl.substring(0, 50) + '...')
+        
+        try {
+          optimizedImage = await optimizeImage(imageUrl)
+          
+          if (optimizedImage && optimizedImage.startsWith('data:')) {
+            const beforeSize = imageUrl.length
+            const afterSize = optimizedImage.length
+            const reduction = ((1 - afterSize/beforeSize) * 100).toFixed(1)
+            console.log(`✅ Image processed: ${(beforeSize/1024).toFixed(0)}KB → ${(afterSize/1024).toFixed(0)}KB`)
+          } else {
+            console.log('⚠️ Using original image (optimization skipped)')
+          }
+        } catch (err) {
+          console.error('❌ Image processing failed:', err)
+          optimizedImage = imageUrl
+        }
       }
       
       const images = []
