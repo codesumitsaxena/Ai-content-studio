@@ -70,7 +70,7 @@ Example usage:
 
 User logs in to Simon Portal using valid credentials.
 
-[Login Screen](../Frontend/public/login.png)
+[Login Screen](./public/login.png)
 
 ---
 
@@ -80,7 +80,7 @@ User logs in to Simon Portal using valid credentials.
 * This text works as a **prompt**.
 * User can manually edit the text before generating content.
 
-![Dashboard](../Frontend/public/Dashboard.png)
+![HomePage](../Frontend/public/HomePage.png)
 
 
 ---
