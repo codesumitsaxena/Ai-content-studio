@@ -80,7 +80,7 @@ User logs in to Simon Portal using valid credentials.
 * This text works as a **prompt**.
 * User can manually edit the text before generating content.
 
-![HomePage](public/HomePage.png)
+![HomePage](public/hompage.png)
 
 ---
 
