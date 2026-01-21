@@ -43,27 +43,6 @@ The system is intentionally kept simple and practical, focusing only on working,
 
 ---
 
-## 📸 Screenshots
-
-> Add project screenshots in the `/screenshots` folder and reference them below.
-
-```md
-/screenshots/login.png
-/screenshots/dashboard.png
-/screenshots/create-post.png
-/screenshots/ai-content.png
-/screenshots/history.png
-```
-
-Example usage:
-
-```md
-![Login Screen](screenshots/login.png)
-![Dashboard](screenshots/dashboard.png)
-```
-
----
-
 ## 🔐 User Flow (Step-by-Step)
 
 ### Step 1: Login
