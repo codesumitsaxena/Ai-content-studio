@@ -1,10 +1,17 @@
-import React from 'react';
+import React, { useState } from 'react';
 import AIContentStudio from './Components/AIContentStudio';
+import LoginPage from './Components/LoginPage';
 
 function App() {
+  const [isAuthenticated, setIsAuthenticated] = useState(false);
+
   return (
     <div className="App">
-      <AIContentStudio />
+      {isAuthenticated ? (
+        <AIContentStudio />
+      ) : (
+        <LoginPage onLoginSuccess={() => setIsAuthenticated(true)} />
+      )}
     </div>
   );
 }

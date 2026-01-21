@@ -658,7 +658,7 @@ const Header = ({
               <Sparkles className="w-5 h-5 text-white" />
             </div>
             <div className="text-left">
-              <h1 className="text-lg font-bold text-gray-900">Saiman Portal</h1>
+              <h1 className="text-lg font-bold text-gray-900">Simon Portal</h1>
               <p className="text-xs text-gray-500">Create. Generate. Publish.</p>
             </div>
           </button>

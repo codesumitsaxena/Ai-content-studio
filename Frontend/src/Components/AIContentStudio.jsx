@@ -19,7 +19,6 @@ const AIContentStudio = () => {
   const [generatedImage, setGeneratedImage] = useState(null)
   const [showNotifications, setShowNotifications] = useState(false)
   
-  // ✅ LOCAL STATE FOR NOTIFICATIONS ONLY (not for history)
   const [requests, setRequests] = useState([])
   
   const [showApprovalModal, setShowApprovalModal] = useState(false)
@@ -42,8 +41,9 @@ const AIContentStudio = () => {
     mediaUrl: ''
   })
 
-  const N8N_WEBHOOK_URL = 'https://n8n.avertisystems.com/webhook-test/ai-content-studio'
+  const N8N_WEBHOOK_URL = 'https://n8n.avertisystems.com/webhook/ai-content-studio'
   const BACKEND_API = 'http://localhost:3000/api/content'
+  
 
   const bgColor = 'bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-50'
   const cardBg = 'bg-white'
