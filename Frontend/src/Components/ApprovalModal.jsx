@@ -1,7 +1,7 @@
 import React, { useState } from 'react'
 import { MessageSquare, Instagram, Wand2, Video, X, CheckCircle, XCircle, Edit2, Check, Zap } from 'lucide-react'
 
-const BASE_URL = 'http://localhost:3000/api/content'
+const BASE_URL = 'https://aipostapi.website-design-india.com/api/content'
 
 const scrollbarStyles = `
   .custom-scrollbar::-webkit-scrollbar {

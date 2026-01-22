@@ -42,7 +42,7 @@ const AIContentStudio = () => {
   })
 
   const N8N_WEBHOOK_URL = 'https://n8n.avertisystems.com/webhook/ai-content-studio'
-  const BACKEND_API = 'http://localhost:3000/api/content'
+  const BACKEND_API = 'https://aipostapi.website-design-india.com/api/content'
   
 
   const bgColor = 'bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-50'

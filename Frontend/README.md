@@ -43,26 +43,7 @@ The system is intentionally kept simple and practical, focusing only on working,
 
 ---
 
-## 📸 Screenshots
 
-> Add project screenshots in the `/screenshots` folder and reference them below.
-
-```md
-/screenshots/login.png
-/screenshots/dashboard.png
-/screenshots/create-post.png
-/screenshots/ai-content.png
-/screenshots/history.png
-```
-
-Example usage:
-
-```md
-![Login Screen](screenshots/login.png)
-![Dashboard](screenshots/dashboard.png)
-```
-
----
 
 ## 🔐 User Flow (Step-by-Step)
 
@@ -70,8 +51,7 @@ Example usage:
 
 User logs in to Simon Portal using valid credentials.
 
-[Login-Screen](./public/loginPage.png)
-
+![Login Screen](public/login.png)
 ---
 
 ### Step 2: Write Prompt / Custom Text
@@ -164,12 +144,6 @@ From history, user can:
 * Re-approve pending content
 * Reject pending content
 * Track publish status
-
-<<<<<<< HEAD
-![Content-History](../Frontend/public/imageHistory.png)
-=======
-![Dashboard](../Frontend/public/)
->>>>>>> 14ba205dcf7621043fbb521a50f2cb1ac91b3aba
 
 ---
 

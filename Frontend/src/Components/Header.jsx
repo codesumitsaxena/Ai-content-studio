@@ -17,7 +17,7 @@ import {
   RotateCcw
 } from 'lucide-react'
 
-const BASE_URL = 'http://localhost:3000/api/content'
+const BASE_URL = 'https://aipostapi.website-design-india.com:3000/api/content'
 const WEBHOOK_URL = 'https://n8n.avertisystems.com/webhook-test/api-key-webhook'
 
 // API Key Modal Component
@@ -234,7 +234,7 @@ const HistoryNavbar = ({ showHistory, setShowHistory, onApprove }) => {
         id: item.id,
         prompt: item.caption,
         image: item.image_path
-          ? `http://localhost:3000/${item.image_path.replace(/\\/g, '/')}`
+          ? `https://aipostapi.website-design-india.com/${item.image_path.replace(/\\/g, '/')}`
           : null,
         status: item.status,
         socialMediaPosted: item.social_media_posted || {},
