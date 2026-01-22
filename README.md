@@ -49,7 +49,7 @@ The system is intentionally kept simple and practical, focusing only on working,
 
 User logs in to Simon Portal using valid credentials.
 
-[LoginScreen](./Frontend/public/login.png)
+![Login Screen](./Frontend/public/loginPage.png)
 
 ---
 
@@ -59,7 +59,7 @@ User logs in to Simon Portal using valid credentials.
 * This text works as a **prompt**.
 * User can manually edit the text before generating content.
 
-![HomePage](./Frontend/public/HomePage.png)
+![Home Page](./Frontend/public/hompage.png)
 
 
 ---
@@ -77,7 +77,7 @@ User logs in to Simon Portal using valid credentials.
 * Image generation is done using **Pollinations API**.
 * Image generation runs asynchronously.
 
-![Text - Image](../Frontend/public/Text%20To%20Imag.png)
+![Text - Image](./Frontend/public/TextToImag.png)
 
 
 ---
@@ -91,14 +91,14 @@ User logs in to Simon Portal using valid credentials.
   * Review caption
   * Edit caption if needed
 
-![Nortification](../Frontend//public/ImageRequest.png)
+![Notification](./Frontend/public/ImageRequest.png)
 
 ---
 
 ### Step 5: Approve or Reject
 
 
-![Content Approval Waiting](../Frontend/public/ApprovalPage.png)
+![Content Approval Waiting](./Frontend/public/ApprovalPage.png)
 
 
 #### Approve
@@ -113,8 +113,7 @@ User logs in to Simon Portal using valid credentials.
 * n8n handles publishing via platform APIs.
 
 
-![Post On SocialMedia](../Frontend/public/ShareonSocail.png)
-
+![Post On SocialMedia](./Frontend/public/ShareonSocail.png)
 
 #### Reject
 
@@ -145,7 +144,7 @@ From history, user can:
 * Reject pending content
 * Track publish status
 
-![Content-History](../Frontend/public/imageHistory.png)
+![Content History](./Frontend/public/imageHistory.png)
 
 ---
 
@@ -158,7 +157,7 @@ n8n is responsible for:
 * Routing content to correct social platform
 * Executing API calls for publishing
 
-![Ai-Content-Studio](../Frontend/public/workflow.png)
+![AI Content Studio](./Frontend/public/workflow.png)
 
 
 Each platform has its own conditional workflow path:
