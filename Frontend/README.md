@@ -43,8 +43,6 @@ The system is intentionally kept simple and practical, focusing only on working,
 
 ---
 
-
-
 ## 🔐 User Flow (Step-by-Step)
 
 ### Step 1: Login
@@ -52,6 +50,7 @@ The system is intentionally kept simple and practical, focusing only on working,
 User logs in to Simon Portal using valid credentials.
 
 ![Login Screen](public/login.png)
+
 ---
 
 ### Step 2: Write Prompt / Custom Text
